@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Das komplette System · Second Brain mit Obsidian und Claude Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --obsidian:#17120E;
+    --obsidian-2:#1E1712;
+    --ink:#0E0A07;
+    --paper:#F4EADC;
+    --paper-2:#D9C8B2;
+    --paper-dim:#A8957C;
+    --coral:#D96548;
+    --coral-soft:#E8826A;
+    --clay:#C98A5E;
+    --sage:#9DB18C;
+    --line:rgba(244,234,220,.12);
+    --line-2:rgba(244,234,220,.07);
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Hanken Grotesk',system-ui,sans-serif;
+    background:var(--obsidian);
+    color:var(--paper);
+    line-height:1.6;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(820px 620px at 12% -8%, rgba(217,101,72,.18), transparent 60%),
+      radial-gradient(720px 680px at 108% 12%, rgba(201,138,94,.10), transparent 55%),
+      radial-gradient(900px 900px at 50% 120%, rgba(157,177,140,.06), transparent 60%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+  #prog{position:fixed;top:0;left:0;height:3px;width:0;z-index:50;
+    background:linear-gradient(90deg,var(--coral),var(--coral-soft),var(--clay));
+    box-shadow:0 0 14px rgba(217,101,72,.6)}
+
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:space-between;
+    align-items:center;padding:18px 28px;mix-blend-mode:difference}
+  .topbar .mark{font-family:'Spline Sans Mono',monospace;font-size:12px;letter-spacing:.18em;
+    text-transform:uppercase;color:#fff;opacity:.85}
+
+  /* HERO */
+  .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+    padding:120px 0 80px}
+  #brainfield{position:absolute;inset:0;z-index:0;width:100%;height:100%}
+  .hero .wrap{position:relative;z-index:3}
+  .eyebrow{font-family:'Spline Sans Mono',monospace;font-size:13px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--coral-soft);margin-bottom:26px;display:flex;align-items:center;gap:14px}
+  .eyebrow::before{content:"";width:42px;height:1px;background:var(--coral)}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(2.7rem,8vw,6.2rem);
+    line-height:.99;letter-spacing:-.02em;max-width:17ch}
+  h1 em{font-style:italic;color:var(--coral)}
+  .hero p.lead{margin-top:34px;max-width:48ch;font-size:clamp(1.05rem,1.7vw,1.32rem);
+    color:var(--paper-2);font-weight:400}
+  .scrollcue{margin-top:56px;font-family:'Spline Sans Mono',monospace;font-size:12px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--paper-dim);display:flex;align-items:center;gap:12px}
+  .scrollcue .dot{width:8px;height:8px;border-radius:50%;background:var(--coral);animation:bob 1.7s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(7px);opacity:.4}}
+
+  section{position:relative;padding:104px 0}
+  .kicker{font-family:'Spline Sans Mono',monospace;font-size:12px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--coral);margin-bottom:18px}
+  h2{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(2rem,4.6vw,3.5rem);
+    line-height:1.02;letter-spacing:-.018em;max-width:20ch}
+  .sub{margin-top:20px;max-width:56ch;color:var(--paper-2);font-size:1.08rem}
+
+  /* principle band + stats */
+  .principle{padding:120px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .principle .big{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(1.7rem,4.4vw,3.1rem);
+    line-height:1.18;letter-spacing:-.01em;max-width:21ch}
+  .principle .big b{color:var(--coral);font-weight:600}
+  .principle .big .ghost{color:var(--paper-dim)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:46px}
+  .stat{text-align:center;padding:24px 14px;border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(180deg,rgba(244,234,220,.03),transparent)}
+  .stat .n{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(2.2rem,5vw,3.2rem);
+    color:var(--coral);line-height:1}
+  .stat .l{font-size:.86rem;color:var(--paper-dim);margin-top:8px;letter-spacing:.02em}
+
+  /* core loop ribbon + stages */
+  .ribbon{width:100%;height:auto;margin:8px 0 6px;overflow:visible}
+  .ribbon path.track{fill:none;stroke:var(--line);stroke-width:2}
+  .ribbon path.flow{fill:none;stroke:url(#cg);stroke-width:2.5;stroke-linecap:round;
+    stroke-dasharray:14 12;animation:march 2.4s linear infinite}
+  @keyframes march{to{stroke-dashoffset:-260}}
+  .ribbon .pulse{fill:var(--coral-soft);filter:drop-shadow(0 0 8px rgba(232,130,106,.9))}
+  .loopgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:30px}
+  .stage{position:relative;padding:26px 22px 28px;border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(180deg,rgba(244,234,220,.035),rgba(244,234,220,.012));backdrop-filter:blur(2px)}
+  .stage .num{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--coral);letter-spacing:.1em}
+  .stage h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.42rem;margin:10px 0 8px}
+  .stage p{font-size:.96rem;color:var(--paper-2)}
+  .stage .cmd{margin-top:14px;font-family:'Spline Sans Mono',monospace;font-size:.8rem;
+    color:var(--clay);border-top:1px solid var(--line-2);padding-top:12px}
+
+  /* cluster + skillcards */
+  .cluster{margin-top:64px}
+  .cluster:first-of-type{margin-top:40px}
+  .clabel{display:flex;align-items:baseline;gap:16px;margin-bottom:22px;
+    border-bottom:1px solid var(--line);padding-bottom:14px}
+  .clabel .ci{font-family:'Spline Sans Mono',monospace;font-size:.78rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--coral);flex:0 0 auto}
+  .clabel h3{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.4rem,2.6vw,1.9rem);
+    line-height:1.05;letter-spacing:-.01em}
+  .clabel .cn{margin-left:auto;font-family:'Spline Sans Mono',monospace;font-size:.74rem;
+    color:var(--paper-dim);flex:0 0 auto}
+  .skillgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .skillcard{padding:18px 20px;border:1px solid var(--line);border-radius:14px;
+    background:rgba(244,234,220,.02);transition:border-color .35s,transform .35s,background .35s}
+  .skillcard:hover{border-color:rgba(217,101,72,.5);transform:translateY(-3px);background:rgba(217,101,72,.04)}
+  .skillcard .cmd{font-family:'Spline Sans Mono',monospace;font-size:.92rem;color:var(--coral-soft);
+    font-weight:500;display:block;margin-bottom:6px}
+  .skillcard p{font-size:.93rem;color:var(--paper-2);line-height:1.5}
+
+  /* loops orbital */
+  .orbit{position:relative;margin:50px auto 0;width:min(440px,86vw);aspect-ratio:1/1}
+  .orbit .ring{position:absolute;inset:0;border:1px dashed var(--line);border-radius:50%;animation:spin 60s linear infinite}
+  .orbit .ring.r2{inset:16%;border-color:var(--line-2);animation-duration:42s;animation-direction:reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .orbit .center{position:absolute;inset:34%;border-radius:50%;display:grid;place-items:center;text-align:center;
+    background:radial-gradient(circle,var(--coral),#b54e34);box-shadow:0 0 40px rgba(217,101,72,.4)}
+  .orbit .center span{font-family:'Fraunces',serif;font-weight:600;font-size:1.05rem;color:#fff;padding:0 8px}
+  .orbit .chip{position:absolute;top:50%;left:50%;font-family:'Spline Sans Mono',monospace;font-size:.74rem;
+    background:var(--obsidian-2);border:1px solid var(--line);padding:6px 11px;border-radius:20px;
+    transform:translate(-50%,-50%) rotate(var(--a)) translateX(min(150px,33vw)) rotate(calc(-1*var(--a)));
+    white-space:nowrap;color:var(--paper);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  .orbit .chip b{color:var(--coral)}
+
+  /* start small band */
+  .startsmall{padding:120px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .startsmall .three{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}
+  .threecard{padding:26px 22px;border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(180deg,rgba(157,177,140,.07),transparent)}
+  .threecard .cmd{font-family:'Spline Sans Mono',monospace;font-size:1.05rem;color:var(--sage);
+    font-weight:500;display:block;margin-bottom:8px}
+  .threecard b{font-family:'Fraunces',serif;font-weight:600;font-size:1.1rem;display:block;margin-bottom:5px}
+  .threecard p{font-size:.94rem;color:var(--paper-2)}
+
+  /* closing / cta */
+  .closing{text-align:center;padding:130px 0 120px}
+  .closing .q{font-family:'Fraunces',serif;font-weight:400;font-style:italic;
+    font-size:clamp(1.7rem,4.4vw,3rem);line-height:1.2;max-width:24ch;margin:0 auto;letter-spacing:-.01em}
+  .closing .q b{font-style:normal;font-weight:600;color:var(--coral)}
+  .closing .ask{margin-top:30px;font-size:1.1rem;color:var(--paper-2);max-width:42ch;margin-left:auto;margin-right:auto}
+  .closing .cta{display:inline-block;margin-top:40px;font-family:'Spline Sans Mono',monospace;font-size:.84rem;
+    letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--coral);text-decoration:none;
+    padding:15px 30px;border-radius:10px;transition:background .3s,transform .3s}
+  .closing .cta:hover{background:var(--coral-soft);transform:translateY(-2px)}
+  .closing .foerder{margin-top:20px;font-size:.94rem;color:var(--sage)}
+  .closing .meta{margin-top:42px;font-family:'Spline Sans Mono',monospace;font-size:.78rem;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--paper-dim)}
+
+  /* OS architecture */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:36px}
+  .duocard{padding:28px 26px;border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(180deg,rgba(244,234,220,.04),transparent)}
+  .duocard .dt{font-family:'Spline Sans Mono',monospace;font-size:.78rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--coral);margin-bottom:10px}
+  .duocard h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.5rem;margin-bottom:8px}
+  .duocard p{font-size:.96rem;color:var(--paper-2)}
+  .layerstack{display:flex;flex-direction:column;gap:12px;margin-top:30px}
+  .litem{display:flex;gap:20px;align-items:flex-start;padding:20px 24px;border:1px solid var(--line);
+    border-radius:14px;background:linear-gradient(90deg,rgba(217,101,72,.06),transparent)}
+  .litem .ln{font-family:'Spline Sans Mono',monospace;font-size:.8rem;color:var(--coral);flex:0 0 56px;padding-top:3px}
+  .litem .lb b{font-family:'Fraunces',serif;font-weight:600;font-size:1.14rem;display:block;margin-bottom:4px}
+  .litem .lb span{font-size:.94rem;color:var(--paper-2)}
+  .litem:last-child{background:linear-gradient(90deg,rgba(157,177,140,.11),transparent)}
+  .parawrap{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .parachip{display:flex;flex-direction:column;gap:4px;padding:15px 18px;border:1px solid var(--line);
+    border-radius:12px;background:rgba(244,234,220,.02);flex:1 1 160px;min-width:152px}
+  .parachip .pn{font-family:'Spline Sans Mono',monospace;font-size:.84rem;color:var(--coral-soft);font-weight:500}
+  .parachip .pp{font-size:.84rem;color:var(--paper-dim);line-height:1.4}
+  .parachip.locked{opacity:.55;border-style:dashed}
+  .parachip.locked .pn{color:var(--paper-dim)}
+  .pringrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:32px}
+  .prin{padding:19px 21px;border:1px solid var(--line);border-radius:14px;background:rgba(244,234,220,.02)}
+  .prin b{font-family:'Fraunces',serif;font-weight:600;font-size:1.06rem;display:block;margin-bottom:5px;color:var(--paper)}
+  .prin p{font-size:.92rem;color:var(--paper-2)}
+  /* references */
+  .refgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:38px}
+  .refcard{display:block;padding:24px 22px;border:1px solid var(--line);border-radius:16px;text-decoration:none;
+    background:linear-gradient(180deg,rgba(244,234,220,.03),transparent);transition:border-color .35s,transform .35s}
+  .refcard:hover{border-color:rgba(217,101,72,.5);transform:translateY(-3px)}
+  .refcard h4{font-family:'Fraunces',serif;font-weight:600;font-size:1.22rem;color:var(--paper);margin-bottom:7px}
+  .refcard p{font-size:.92rem;color:var(--paper-2)}
+  .refcard .rsrc{display:block;margin-top:13px;font-family:'Spline Sans Mono',monospace;font-size:.78rem;color:var(--clay)}
+
+  .reveal{opacity:0;transform:translateY(30px);
+    transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1);
+    transition-delay:calc(var(--i,0)*70ms)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:860px){
+    .loopgrid{grid-template-columns:repeat(2,1fr)}
+    .skillgrid,.duo,.pringrid,.refgrid{grid-template-columns:1fr}
+    .stats,.startsmall .three{grid-template-columns:1fr}
+    .clabel{flex-wrap:wrap;gap:6px}
+    .clabel .cn{margin-left:0;flex-basis:100%}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important}
+    .reveal{transition:none;opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div class="topbar">
+  <a class="mark" href="index.html" style="text-decoration:none;color:#fff">&larr; Dashboard</a>
+  <div class="mark">Skills &amp; OS</div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <canvas id="brainfield"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Ein Blick hinter mein Setup</div>
+    <h1>Über 40 Befehle. Und ein Gehirn, das <em>nicht vergisst</em>.</h1>
+    <p class="lead">So sieht mein System nach einem Jahr Probieren aus. Ein Obsidian-Vault, gesteuert über Claude Code, der mein Wissen sammelt, verknüpft und in Arbeit verwandelt. Du musst nicht alles nachbauen. Aber du siehst, wohin die Reise geht.</p>
+    <div class="scrollcue"><span class="dot"></span> scroll durch den Kreislauf</div>
+  </div>
+</header>
+
+<!-- PRINCIPLE / OVERVIEW -->
+<section class="principle">
+  <div class="wrap reveal">
+    <div class="kicker">Worum es geht</div>
+    <p class="big">Jeder Befehl macht <b>eine</b> Sache. Zusammen ergeben sie <span class="ghost">ein Gehirn, das mit dir mitwächst.</span></p>
+    <p class="sub">Das Herz ist ein einfacher Kreislauf: Rohes rein, verarbeiten, speichern, abrufen. Drumherum liegen Rituale, die das System wachhalten, und Skills, die aus deinem Wissen Content, Kunden und fertige Seiten machen.</p>
+    <div class="stats">
+      <div class="stat reveal" style="--i:0"><div class="n">40+</div><div class="l">Skills und Commands</div></div>
+      <div class="stat reveal" style="--i:1"><div class="n">4</div><div class="l">Schritte im Kreislauf</div></div>
+      <div class="stat reveal" style="--i:2"><div class="n">1</div><div class="l">Quelle der Wahrheit</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CORE LOOP -->
+<section>
+  <div class="wrap">
+    <div class="reveal"><div class="kicker">Das Herz · Der Kreislauf</div>
+    <h2>Vier Schritte, ein geschlossener Kreis.</h2>
+    <p class="sub">Wissen fließt in eine Richtung und kommt als Antwort zurück. Genau diese vier Befehle bilden den Kern. Wenn du nur diese hast, hast du schon ein funktionierendes zweites Gehirn.</p></div>
+
+    <svg class="ribbon reveal" viewBox="0 0 1200 130" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="cg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#D96548"/><stop offset="0.5" stop-color="#E8826A"/>
+          <stop offset="1" stop-color="#C98A5E"/>
+        </linearGradient>
+      </defs>
+      <path id="flowpath" class="track" d="M40,95 C 280,95 280,40 440,40 S 760,95 920,95 1100,60 1160,40"/>
+      <path class="flow" d="M40,95 C 280,95 280,40 440,40 S 760,95 920,95 1100,60 1160,40"/>
+      <circle class="pulse" r="6"><animateMotion dur="4.5s" repeatCount="indefinite"
+        keyPoints="0;1" keyTimes="0;1" calcMode="linear"
+        path="M40,95 C 280,95 280,40 440,40 S 760,95 920,95 1100,60 1160,40"/></circle>
+    </svg>
+
+    <div class="loopgrid">
+      <div class="stage reveal" style="--i:0"><div class="num">01 · Eingang</div><h3>Sammeln</h3>
+        <p>Artikel, Notion-Seiten, Transkripte und PDFs landen roh in einem Ordner.</p>
+        <div class="cmd">/web-import · /notion-import</div></div>
+      <div class="stage reveal" style="--i:1"><div class="num">02 · Verarbeitung</div><h3>Verdichten</h3>
+        <p>Claude zieht die Kernkonzepte heraus und schreibt sie als verlinkte Artikel ins Wiki.</p>
+        <div class="cmd">/verarbeiten · /pruefung</div></div>
+      <div class="stage reveal" style="--i:2"><div class="num">03 · Speicher</div><h3>Verknüpfen</h3>
+        <p>Artikel werden mit Backlinks vernetzt. Ein Konzept, ein Artikel. Kein Doppeln.</p>
+        <div class="cmd">vault/</div></div>
+      <div class="stage reveal" style="--i:3"><div class="num">04 · Abruf</div><h3>Nutzen</h3>
+        <p>Du fragst dein Wissen in normaler Sprache. Neue Erkenntnis fließt zurück.</p>
+        <div class="cmd">/fragen</div></div>
+    </div>
+
+    <div class="cluster">
+      <div class="clabel reveal"><span class="ci">Die Befehle im Kern</span><h3>Sammeln, verdichten, abrufen</h3><span class="cn">6 Befehle</span></div>
+      <div class="skillgrid">
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/web-import</span><p>Spannenden Artikel gelesen? Ein Befehl, und er liegt sauber im Eingang, bereit fürs Wiki.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/notion-import</span><p>Holt Notion-Seiten und ganze Datenbanken als Markdown in deinen Eingang.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/verarbeiten</span><p>Macht aus Rohmaterial vernetzte Artikel. Liest nur Neues, setzt Backlinks, führt Buch.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/pruefung</span><p>Gesundheitscheck fürs Wiki: findet Widersprüche, fehlende Backlinks, verwaiste Artikel.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/fragen</span><p>Stell deinem Wissen Fragen in normaler Sprache. Antwort kommt mit Quellen, Neues fließt zurück.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/notebooklm</span><p>Macht aus deinen Quellen Notebooks und Podcasts. Eigener Input-Kanal fürs Lernen.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOOPS / RITUALS -->
+<section>
+  <div class="wrap">
+    <div class="reveal" style="text-align:center"><div class="kicker" style="display:inline-block">Drumherum · Die Schleifen</div>
+    <h2 style="margin:0 auto">Das System pflegt sich selbst.</h2>
+    <p class="sub" style="margin:20px auto 0">Feste Rituale halten das Gehirn wach. Vom Tagesstart bis zur Jahresbilanz fließt jede Session zurück ins System, statt zu verpuffen.</p></div>
+    <div class="orbit reveal">
+      <div class="ring"></div><div class="ring r2"></div>
+      <div class="center"><span>Lern-<br>schleifen</span></div>
+      <div class="chip" style="--a:0deg"><b>/prime</b></div>
+      <div class="chip" style="--a:60deg"><b>/log</b></div>
+      <div class="chip" style="--a:120deg"><b>/feierabend</b></div>
+      <div class="chip" style="--a:180deg"><b>/woche</b></div>
+      <div class="chip" style="--a:240deg"><b>/monat</b></div>
+      <div class="chip" style="--a:300deg"><b>/jahr</b></div>
+    </div>
+
+    <div class="cluster">
+      <div class="clabel reveal"><span class="ci">Rhythmus und Reflexion</span><h3>Befehle, die das Gehirn wachhalten</h3><span class="cn">11 Befehle</span></div>
+      <div class="skillgrid">
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/prime</span><p>Tagesstart: zieht Ziele und Stand, ohne dass du alles neu erklären musst.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/coach</span><p>Was soll ich heute machen? Liest Kalender, Reminders und Ziele und gibt eine klare Prio.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/dump</span><p>Einmal erzählen, was los ist. Claude sortiert es in die richtigen Ebenen.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/denkpartner</span><p>Kein Liefern, nur Denken. Für die Momente, in denen du erst Klarheit brauchst.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/log</span><p>Sichert das Wissen einer Session in drei Ebenen, damit nichts verloren geht.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/feierabend</span><p>Schließt den Tag ab. Erkenntnisse fließen zurück, morgen baut darauf auf.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/clean</span><p>Räumt Memory und Tagesstand auf. Hält das Gedächtnis schlank und ehrlich.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/briefing</span><p>Morgens: triagiert deine Mails in Sofort, Heute, Später und legt Reminders an.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/wochenrückblick · /monatsrückblick · /jahresrückblick</span><p>Bilanz aus den Logs. Selbstreflexion, die nicht vor einem leeren Blatt startet.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/dashboard-sync</span><p>Hält dein persönliches Dashboard mit dem aktuellen Stand synchron.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FROM KNOWLEDGE TO WORK -->
+<section>
+  <div class="wrap">
+    <div class="reveal"><div class="kicker">Nach außen · Aus Wissen wird Wirkung</div>
+    <h2>Hier hört Ordnung auf und Arbeit fängt an.</h2>
+    <p class="sub">Ein Vault, der nur Wissen sammelt, ist eine schöne Bibliothek. Der Unterschied entsteht, wenn dein Wissen an die Wertschöpfung gekoppelt ist. Diese Skills greifen direkt auf das zu, was im Wiki liegt.</p></div>
+
+    <!-- Content -->
+    <div class="cluster">
+      <div class="clabel reveal"><span class="ci">Content und Reichweite</span><h3>Aus Wissen werden Posts</h3><span class="cn">6 Skills</span></div>
+      <div class="skillgrid">
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/ideen</span><p>Vier Post-Ideen nach deinen vier Säulen. Das wöchentliche Planungs-Ritual.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/content-post</span><p>Vom Gedanken bis Ready to post. Der ganze LinkedIn-Workflow in deinem Schreibstil.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/repurpose</span><p>Ein Video oder Artikel wird zu drei Posts und einem Newsletter-Abschnitt.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/linkedin-analyse</span><p>Bewertet einen Post auf fünf Dimensionen und sagt konkret, was besser geht.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/erfolgsbeschleuniger</span><p>Wöchentliche Community-Posts: Montag Action Steps, Sonntag Rückblick.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/mailerlite-kampagne</span><p>Setzt E-Mail-Kampagnen und ganze Sequenzen in deinem Schreibstil auf.</p></div>
+      </div>
+    </div>
+
+    <!-- Sales / CRM -->
+    <div class="cluster">
+      <div class="clabel reveal"><span class="ci">Sales und Kunden</span><h3>Aus Gesprächen werden Aufträge</h3><span class="cn">5 Skills</span></div>
+      <div class="skillgrid">
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/salescall</span><p>Bereitet den Call vor: letzte Notiz, Leitfaden, 6-Phasen-Skript und Einwand-Antworten.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/crm-log</span><p>Gesprächsergebnis rein, das nächste Nachfassen wird automatisch geplant.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/crm-status</span><p>Wie steht's mit dieser Person? Status, Daten und Link auf einen Befehl.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/crm-followup</span><p>Wen muss ich diese Woche nachhaken? Die fällige Nachfassliste auf einen Blick.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/workshop-zugangsdaten</span><p>Neue Anmeldung? Zugangsdaten und Bestätigungsmail gehen sauber raus.</p></div>
+      </div>
+    </div>
+
+    <!-- Produktion / Visuals -->
+    <div class="cluster">
+      <div class="clabel reveal"><span class="ci">Material und Visuals</span><h3>Aus Wissen wird etwas Sichtbares</h3><span class="cn">6 Skills</span></div>
+      <div class="skillgrid">
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/visual-ci</span><p>Karussells und Grafiken im eigenen CI, ohne Designprogramm.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/nano-banana-infografik</span><p>Infografiken und Schaubilder mit exakten Markenfarben.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/foto-veredeln</span><p>Bestehende Fotos für LinkedIn und Profil professionell aufräumen.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/kundenanleitung</span><p>Schritt-für-Schritt-Guides für deine Klienten als HTML und PDF.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/hilker-aufgabenblatt</span><p>Interaktive, ausfüllbare Arbeitsblätter für deine Trainings.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/claudemasterclass-arbeitsblatt</span><p>Dasselbe für deine Kurs-Kohorten, im eigenen Look.</p></div>
+      </div>
+    </div>
+
+    <!-- Web / Deploy -->
+    <div class="cluster">
+      <div class="clabel reveal"><span class="ci">Web und Außenauftritt</span><h3>Das System geht online</h3><span class="cn">5 Skills</span></div>
+      <div class="skillgrid">
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/landingpage</span><p>Scroll-Landingpages für Workshops, Kurse und Events im eigenen Stil.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/freebie</span><p>Passwortgeschützte Lead-Magnets, die du unter deine Posts hängst.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/legal-pages</span><p>Impressum und Datenschutz für deutsche Seiten, DSGVO-konform.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/security-check</span><p>Prüft eine Live-Seite auf HTTPS, Security-Header und Pflicht-Links.</p></div>
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/webgo-upload</span><p>Schiebt fertige Seiten per FTP live, das Passwort bleibt in der Keychain.</p></div>
+      </div>
+    </div>
+
+    <!-- Admin / Recht -->
+    <div class="cluster">
+      <div class="clabel reveal"><span class="ci">Sauber und rechtssicher</span><h3>Damit das Fundament stimmt</h3><span class="cn">2 Skills</span></div>
+      <div class="skillgrid">
+        <div class="skillcard reveal" style="--i:0"><span class="cmd">/dsgvo-check</span><p>Ist dieses Tool mit Klientendaten okay? Ampel plus konkrete nächste Schritte.</p></div>
+        <div class="skillcard reveal" style="--i:1"><span class="cmd">/llc-log</span><p>Hält Kontostände und meldepflichtige Ereignisse deiner Firma fest.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OS ARCHITECTURE -->
+<section>
+  <div class="wrap">
+    <div class="reveal"><div class="kicker">Das Fundament · Die Architektur</div>
+    <h2>Und das alles liegt in einer klaren Struktur.</h2>
+    <p class="sub">Die Skills sind nur die Hände. Darunter liegt ein aufgeräumtes System mit festen Plätzen für alles. Es hat zwei Hälften, vier Ebenen und ein gemeinsames Skelett.</p></div>
+
+    <div class="duo">
+      <div class="duocard reveal" style="--i:0"><div class="dt">Brain</div><h3>Was ich weiß</h3><p>Wissen, Kontext und Erinnerung. Der Vault, die Kontext-Dateien, das Memory. Alles, worauf die KI zugreift, wenn sie mir hilft.</p></div>
+      <div class="duocard reveal" style="--i:1"><div class="dt">HQ</div><h3>Womit ich arbeite</h3><p>Befehle, Skills, kleine Automatik-Skripte, das Dashboard und die Logs. Alles, was etwas tut.</p></div>
+    </div>
+
+    <div class="reveal" style="margin-top:58px"><div class="kicker">Vier Ebenen</div>
+    <h2 style="font-size:clamp(1.5rem,3vw,2.2rem)">Von der Landkarte bis zur Absicherung.</h2></div>
+    <div class="layerstack">
+      <div class="litem reveal" style="--i:0"><div class="ln">L1</div><div class="lb"><b>Onboarding</b><span>Die Landkarte. Welche Regeln gelten und wo was liegt. Damit jede Session sofort weiß, wie hier gearbeitet wird.</span></div></div>
+      <div class="litem reveal" style="--i:1"><div class="ln">L2</div><div class="lb"><b>Brain</b><span>Das Wissen, geordnet nach der PARA-Methode. Vault, Kontext, Rohmaterial und Memory.</span></div></div>
+      <div class="litem reveal" style="--i:2"><div class="ln">L3</div><div class="lb"><b>HQ</b><span>Die Steuerung. Befehle, Skills, Automatik, Dashboard und Logs greifen auf das Brain zu.</span></div></div>
+      <div class="litem reveal" style="--i:3"><div class="ln">L4</div><div class="lb"><b>Absicherung</b><span>Verschlüsseltes Backup, sensible Daten strikt getrennt. Läuft automatisch zum Feierabend mit.</span></div></div>
+    </div>
+
+    <div class="reveal" style="margin-top:58px"><div class="kicker">Das Skelett · PARA</div>
+    <h2 style="font-size:clamp(1.5rem,3vw,2.2rem)">Sechs Ordner, ein Platz für alles.</h2></div>
+    <div class="parawrap">
+      <div class="parachip locked reveal" style="--i:0"><span class="pn">🔒 00-sensitive</span><span class="pp">Tabu. Wird nie gelesen, nie editiert, nie gesichert.</span></div>
+      <div class="parachip reveal" style="--i:1"><span class="pn">01-projects</span><span class="pp">Aktive Projekte mit Deadline.</span></div>
+      <div class="parachip reveal" style="--i:2"><span class="pn">02-areas</span><span class="pp">Laufende Verantwortung ohne Enddatum.</span></div>
+      <div class="parachip reveal" style="--i:3"><span class="pn">03-resources</span><span class="pp">Referenzen und der Vault.</span></div>
+      <div class="parachip reveal" style="--i:4"><span class="pn">04-archive</span><span class="pp">Abgeschlossenes.</span></div>
+      <div class="parachip reveal" style="--i:5"><span class="pn">_system</span><span class="pp">Kontext und Maschinerie.</span></div>
+    </div>
+
+    <div class="pringrid">
+      <div class="prin reveal" style="--i:0"><b>Eine Quelle der Wahrheit</b><p>Der Tagesstand lebt an einem Ort. Das Dashboard zieht einmal am Tag nach, nicht ständig.</p></div>
+      <div class="prin reveal" style="--i:1"><b>raw zuerst, dann Wiki</b><p>Quellen landen erst roh im Eingang und werden dann verarbeitet. Das Prinzip stammt von Andrej Karpathy.</p></div>
+      <div class="prin reveal" style="--i:0"><b>Entkopplung</b><p>Kein Befehl ruft heimlich schwere andere Befehle auf. So bleibt alles schnell und robust.</p></div>
+      <div class="prin reveal" style="--i:1"><b>Sensibles bleibt außen vor</b><p>Klientendaten liegen in einem eigenen, abgeschotteten Ordner. Nie im Backup, nie im Zugriff.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- REFERENCES -->
+<section>
+  <div class="wrap">
+    <div class="reveal"><div class="kicker">Woraus das entstanden ist</div>
+    <h2>Auf den Schultern von ein paar guten Ideen.</h2>
+    <p class="sub">Ich habe das nicht allein erfunden. Fünf Quellen haben mein System geprägt. Schau rein, nimm mit was zu dir passt, und lass den Rest weg.</p></div>
+    <div class="refgrid">
+      <a class="refcard reveal" style="--i:0" href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank" rel="noopener"><h4>LLM Wiki · Andrej Karpathy</h4><p>Das raw→wiki-Prinzip: eine Wissensbasis als LLM-gepflegtes Wiki aus rohen Quellen aufbauen. Das Herz meines Systems.</p><span class="rsrc">gist.github.com/karpathy ↗</span></a>
+      <a class="refcard reveal" style="--i:1" href="https://github.com/heyitsnoah/claudesidian" target="_blank" rel="noopener"><h4>Claudesidian</h4><p>Ein vorkonfigurierter Obsidian-Vault für Claude Code nach PARA. Vorlage für den sauberen Ein-Wurzel-Aufbau.</p><span class="rsrc">github.com/heyitsnoah ↗</span></a>
+      <a class="refcard reveal" style="--i:0" href="https://github.com/breferrari/obsidian-mind" target="_blank" rel="noopener"><h4>obsidian-mind</h4><p>Ein Vault als Gedächtnis für KI-Agenten. Von hier kommt die Idee, Qualität per Hook beim Schreiben zu erzwingen.</p><span class="rsrc">github.com/breferrari ↗</span></a>
+      <a class="refcard reveal" style="--i:1" href="https://github.com/kepano/obsidian-skills" target="_blank" rel="noopener"><h4>obsidian-skills</h4><p>Saubere Obsidian-Skills von Steph Ango. Von hier kommen das schlanke Skill-Prinzip und sauberes Wikilink-Handwerk.</p><span class="rsrc">github.com/kepano ↗</span></a>
+      <a class="refcard reveal" style="--i:0" href="https://github.com/eugeniughelbur/obsidian-second-brain" target="_blank" rel="noopener"><h4>obsidian-second-brain</h4><p>Ein selbstschreibendes KI-Gedächtnis. Von hier kommen Recency-Marker, der Stil-Wächter und der Funnel.</p><span class="rsrc">github.com/eugeniughelbur ↗</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- START SMALL -->
+<section class="startsmall">
+  <div class="wrap">
+    <div class="reveal"><div class="kicker">Bevor du dich überfordert fühlst</div>
+    <h2>Du brauchst nicht alle 40.</h2>
+    <p class="sub">Ich habe das über ein Jahr aufgebaut, Befehl für Befehl, immer wenn mich etwas wirklich genervt hat. Fang nicht mit allem an. Fang mit dreien an. Der Rest kommt, wenn du ihn brauchst.</p></div>
+    <div class="three">
+      <div class="threecard reveal" style="--i:0"><span class="cmd">/prime</span><b>Ankommen</b><p>Jede Session weiß, woran du arbeitest. Kein Neu-Erklären, kein bei null anfangen.</p></div>
+      <div class="threecard reveal" style="--i:1"><span class="cmd">/verarbeiten</span><b>Sammeln</b><p>Aus dem, was du liest und lernst, wird vernetztes Wissen. Ganz von selbst.</p></div>
+      <div class="threecard reveal" style="--i:2"><span class="cmd">/fragen</span><b>Nutzen</b><p>Dein Wissen antwortet dir. Und klingt dabei nach dir, weil es dich kennt.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING / CTA -->
+<section class="closing">
+  <div class="wrap reveal">
+    <p class="q">Ein System ist nur so gut wie der erste Befehl, den du <b>wirklich nutzt.</b></p>
+    <p class="ask">Du musst nicht ein Jahr allein rumprobieren wie ich. Genau diesen Aufbau gehe ich mit Coaches, Beratern und Trainern Schritt für Schritt durch.</p>
+    <a class="cta" href="https://ki-training.lehrconsult.de" target="_blank" rel="noopener">Zum geförderten KI-Training</a>
+    <p class="foerder">Für Selbstständige bis zu 90&nbsp;% förderfähig über KOMPASS.</p>
+    <p class="meta">Ein Einblick von Viktor Lehr · lehrconsult.de</p>
+  </div>
+</section>
+
+<script>
+/* progress bar */
+const prog=document.getElementById('prog');
+addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const p=h.scrollTop/(h.scrollHeight-h.clientHeight);
+  prog.style.width=(p*100)+'%';
+},{passive:true});
+
+/* reveal */
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:.14});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* hero floating brain field */
+(function(){
+  const cv=document.getElementById('brainfield');
+  if(!cv) return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx=cv.getContext('2d');
+  let w,h,pts,raf;
+  const N=46;
+  function size(){ w=cv.width=cv.offsetWidth*devicePixelRatio; h=cv.height=cv.offsetHeight*devicePixelRatio; }
+  function init(){
+    size();
+    pts=Array.from({length:N},()=>({x:Math.random()*w,y:Math.random()*h,
+      vx:(Math.random()-.5)*0.18*devicePixelRatio,vy:(Math.random()-.5)*0.18*devicePixelRatio,
+      r:(Math.random()*1.6+0.7)*devicePixelRatio}));
+  }
+  function frame(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of pts){
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>w)p.vx*=-1; if(p.y<0||p.y>h)p.vy*=-1;
+    }
+    const md=140*devicePixelRatio;
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+      const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<md){ ctx.strokeStyle='rgba(217,101,72,'+(0.16*(1-d/md))+')';
+        ctx.lineWidth=devicePixelRatio*0.6; ctx.beginPath();
+        ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke(); }
+    }
+    for(const p of pts){ ctx.fillStyle='rgba(232,130,106,.55)';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill(); }
+    raf=requestAnimationFrame(frame);
+  }
+  init();frame();
+  addEventListener('resize',()=>{cancelAnimationFrame(raf);init();frame();},{passive:true});
+})();
+</script>
+</body>
+</html>
