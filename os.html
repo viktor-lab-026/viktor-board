@@ -97,7 +97,7 @@
   .osdetail .dx{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);
     font-size:20px;cursor:pointer;line-height:1}
   .osdetail .dx:hover{color:var(--coral)}
-  .maptip{text-align:center;color:var(--muted);font-size:.78rem;padding:14px 24px 4px;position:relative;z-index:3}
+  .maptip{text-align:center;color:var(--muted);font-size:.78rem;padding:26px 24px 8px;position:relative;z-index:3}
   .maptip .mono{font-family:'JetBrains Mono',monospace;color:var(--muted)}
 
   /* ============ LIGHT SECTIONS ============ */
@@ -296,7 +296,7 @@
   </div>
 
   <div class="stage">
-  <svg class="map" id="map" viewBox="0 0 1280 920" xmlns="http://www.w3.org/2000/svg">
+  <svg class="map" id="map" viewBox="0 0 1280 978" xmlns="http://www.w3.org/2000/svg">
 
     <!-- BRANCH 1: ONBOARDING (top, coral) -->
     <g class="branch" data-br="onboarding">
@@ -630,7 +630,7 @@
     <div class="layerstack">
       <div class="litem reveal" style="--i:0"><div class="ln">L1</div><div class="lb"><b>Onboarding</b><span>Die Landkarte. Welche Regeln gelten und wo was liegt. Damit jede Session sofort weiß, wie hier gearbeitet wird.</span></div></div>
       <div class="litem reveal" style="--i:1"><div class="ln">L2</div><div class="lb"><b>Brain</b><span>Das Wissen, geordnet nach der PARA-Methode. Vault, Kontext, Rohmaterial und Memory.</span></div></div>
-      <div class="litem reveal" style="--i:2"><div class="ln">L3</div><div class="lb"><b>HQ</b><span>Die Steuerung. Befehle, Skills, Automatik, Dashboard und Logs greifen auf das Brain zu.</span></div></div>
+      <div class="litem reveal" style="--i:2"><div class="ln">L3</div><div class="lb"><b>HQ</b><span>Die Steuerung. Befehle, Skills, Automatik (Scripts, Hooks, Backups), Dashboard und Logs greifen auf das Brain zu.</span></div></div>
       <div class="litem reveal" style="--i:3"><div class="ln">L4</div><div class="lb"><b>Absicherung<span class="done">aktiv seit Juni</span></b><span>HQ verschlüsselt nach GitHub, Memory per restic. Sensibles strikt getrennt. Läuft automatisch zum Feierabend mit.</span></div></div>
     </div>
 
@@ -650,6 +650,8 @@
       <div class="prin reveal" style="--i:1"><b>raw zuerst, dann Wiki</b><p>Quellen landen erst roh im Eingang und werden dann verarbeitet. Das Prinzip stammt von Andrej Karpathy.</p></div>
       <div class="prin reveal" style="--i:0"><b>Entkopplung</b><p>Kein Befehl ruft heimlich schwere andere Befehle auf. So bleibt alles schnell und robust.</p></div>
       <div class="prin reveal" style="--i:1"><b>Sensibles bleibt außen vor</b><p>Klientendaten liegen in einem eigenen, abgeschotteten Ordner. Nie im Backup, nie im Zugriff.</p></div>
+      <div class="prin reveal" style="--i:0"><b>Schreib-Wächter</b><p>Ein Hook prüft jede .md und .html schon beim Speichern gegen meine Stil-Regeln. Meldet Em-Dashes und Floskeln, blockiert aber nichts.</p></div>
+      <div class="prin reveal" style="--i:1"><b>Datenklassen getrennt</b><p>Steuerung darf in die bequeme Cloud, Klientendaten nur verschlüsselt. CRM und Transkription laufen über DSGVO-konforme Wege.</p></div>
     </div>
   </div>
 </section>
@@ -715,7 +717,7 @@ const NODES={
   'brain-vault':{k:'var(--brain)',t:'Obsidian-Vault',p:'03-resources/vault/',b:'Das Second-Brain-Wiki. Gespeist aus raw/ via /verarbeiten, abgefragt via /fragen, geprüft via /pruefung.',w:'Anfassen: wenn neues Wissen dauerhaft soll.'},
   'brain-context':{k:'var(--brain)',t:'Kontext-Kern',p:'_system/context/',b:'about-me, company, strategy, Ziele, current-data. Wird über /prime und /coach geladen.',w:'Anfassen: wenn sich Profil, Firma oder Ziele ändern.'},
   'brain-memory':{k:'var(--brain)',t:'Memory',p:'~/.claude/…/memory/',b:'Dynamisches Gedächtnis: gelernte Patterns, Feedback, Projektkontext mit Halbwertszeit. Index ist MEMORY.md.',w:'Anfassen: via /log (anlegen) und /clean (aufräumen).'},
-  'hq-hub':{k:'var(--hq)',t:'3 · HQ',p:'Steuerung',b:'Womit ich arbeite: Commands, Skills, Automatik, Dashboard und Logs. Alles, was etwas tut.',w:'Anfassen: wenn ein wiederkehrender Workflow entsteht.'},
+  'hq-hub':{k:'var(--hq)',t:'3 · HQ',p:'Steuerung',b:'Womit ich arbeite: Commands, Skills, Automatik (Scripts, Hooks wie der style-lint-Schreibwächter, Backup-Lauf), Dashboard und Logs. Alles, was etwas tut.',w:'Anfassen: wenn ein wiederkehrender Workflow entsteht.'},
   'hq-cmd':{k:'var(--hq)',t:'Commands',p:'.claude/commands/',b:'11 Workspace-Befehle: prime, coach, dump, denkpartner, log, clean, feierabend, die drei Rückblicke und erfolgsbeschleuniger.',w:'Anfassen: wenn ein Ablauf dazukommt oder sich ändert.'},
   'hq-skills':{k:'var(--hq)',t:'Skills',p:'~/.claude/skills/',b:'37 Skills von coach über crm bis landingpage. Trigger steht im Skill-Header.',w:'Anfassen: wenn ein neuer wiederkehrender Workflow entsteht.'},
   'hq-dash':{k:'var(--hq)',t:'Dashboard',p:'viktor-board',b:'Diese Seite und das Kanban. Frontend public auf GitHub Pages, Daten privat.',w:'Voller Sync nur via /feierabend, einmal am Tag. current-data ist Master.'},
