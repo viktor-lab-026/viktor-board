@@ -45,6 +45,18 @@
   .ach{display:flex;flex-wrap:wrap;gap:9px}
   .ach .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;box-shadow:var(--shadow);display:inline-flex;align-items:center;gap:8px}
   .ach .chip::before{content:"✓";color:var(--green);font-weight:800}
+  /* Akkordeon „Schon erreicht" */
+  .acc-toggle{appearance:none;background:none;border:none;width:100%;cursor:pointer;font:inherit;color:inherit;text-align:left}
+  .acc-toggle::after{content:none}
+  .acc-count{font-size:11px;font-weight:700;color:var(--coral);background:#FBEAE2;border-radius:999px;padding:2px 9px;letter-spacing:0;text-transform:none}
+  .acc-line{flex:1;height:1px;background:var(--line)}
+  .acc-chev{font-size:12px;color:var(--muted);transition:transform .25s,color .2s;flex:0 0 auto}
+  .acc-toggle:hover{color:var(--coral)}
+  .acc-toggle:hover .acc-chev{color:var(--coral)}
+  .acc-toggle[aria-expanded="true"] .acc-chev{transform:rotate(180deg)}
+  .ach-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s ease}
+  .ach-wrap.open{grid-template-rows:1fr}
+  .ach-wrap>.ach{overflow:hidden;min-height:0}
 
   .timeline{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
   .track{display:flex;flex-wrap:wrap}
@@ -133,8 +145,10 @@
   <div class="section-label">Jahresziele 2026</div>
   <div class="goals" id="goals"></div>
 
-  <div class="section-label">Schon erreicht</div>
-  <div class="ach" id="ach"></div>
+  <button class="section-label acc-toggle" id="achToggle" aria-expanded="false" aria-controls="achWrap">
+    <span>Schon erreicht</span><span class="acc-count" id="achCount">0</span><span class="acc-line"></span><span class="acc-chev" aria-hidden="true">▾</span>
+  </button>
+  <div class="ach-wrap" id="achWrap"><div class="ach" id="ach"></div></div>
 
   <div class="section-label">Termine heute</div>
   <div class="timeline"><div class="track" id="timeline"></div></div>
@@ -281,6 +295,7 @@
 
     // Achievements
     document.getElementById("ach").innerHTML=(state.achievements||[]).map(a=>'<span class="chip">'+esc(a)+'</span>').join("");
+    document.getElementById("achCount").textContent=(state.achievements||[]).length;
 
     // Timeline
     document.getElementById("timeline").innerHTML=(state.timeline||[]).map(t=>
@@ -363,6 +378,17 @@
   document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeEditor();});
   document.getElementById("connectBg").addEventListener("click",e=>{if(e.target.id==="connectBg")closeConnect();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeEditor();closeConnect();}});
+
+  // ---- Akkordeon „Schon erreicht" (Standard: zugeklappt, Zustand gemerkt) ----
+  const ACC_KEY="vl-ach-open";
+  const achToggle=document.getElementById("achToggle"), achWrap=document.getElementById("achWrap");
+  function setAcc(open){
+    achWrap.classList.toggle("open",open);
+    achToggle.setAttribute("aria-expanded",open?"true":"false");
+    try{localStorage.setItem(ACC_KEY,open?"1":"0");}catch(e){}
+  }
+  achToggle.addEventListener("click",()=>setAcc(!achWrap.classList.contains("open")));
+  setAcc(localStorage.getItem(ACC_KEY)==="1");
 
   render();
   loadRemote();
