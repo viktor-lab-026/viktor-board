@@ -58,6 +58,17 @@
   .ach-wrap.open{grid-template-rows:1fr}
   .ach-wrap>.ach{overflow:hidden;min-height:0}
 
+  .reflect{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+  .reflect-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .reflect h4{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .reflect input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#FCFAF6;margin-bottom:8px}
+  .reflect input:focus{outline:none;border-color:var(--coral-soft);background:#fff}
+  .refl-list{overflow:hidden;min-height:0}
+  .refl-h{display:flex;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .refl-h:last-child{border-bottom:none}
+  .refl-h b{color:var(--coral);white-space:nowrap;font-size:12px}
+  .refl-h span{color:var(--muted);line-height:1.6}
+
   .timeline{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
   .track{display:flex;flex-wrap:wrap}
   .slot{flex:1;min-width:120px;padding-right:8px}
@@ -142,6 +153,13 @@
     </div>
   </header>
 
+  <div class="section-label">Morgen-Reflexion</div>
+  <div class="reflect" id="reflect"></div>
+  <button class="section-label acc-toggle" id="reflToggle" aria-expanded="false" aria-controls="reflWrap" style="margin-top:14px">
+    <span>Frühere Einträge</span><span class="acc-count" id="reflCount">0</span><span class="acc-line"></span><span class="acc-chev" aria-hidden="true">▾</span>
+  </button>
+  <div class="ach-wrap" id="reflWrap"><div class="refl-list" id="reflHist"></div></div>
+
   <div class="section-label">Jahresziele 2026</div>
   <div class="goals" id="goals"></div>
 
@@ -220,7 +238,7 @@
   function b64encode(str){ return btoa(String.fromCharCode(...new TextEncoder().encode(str))); }
   function b64decode(b64){ const bin=atob(b64.replace(/\s/g,"")); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
 
-  const EMPTY = { meta:{title:"Dashboard",dateLabel:""}, goals:[], achievements:[], timeline:[], why:"", columns:[
+  const EMPTY = { meta:{title:"Dashboard",dateLabel:""}, reflections:[], goals:[], achievements:[], timeline:[], why:"", columns:[
     {id:"now",title:"Jetzt — Hebel",cards:[]},{id:"week",title:"Diese Woche",cards:[]},
     {id:"later",title:"Später / Backlog",cards:[]},{id:"done",title:"Erledigt",cards:[]} ] };
 
@@ -278,6 +296,48 @@
     if(!t){ return; } localStorage.setItem(TOKEN_KEY,t); closeConnect(); loadRemote(true);
   });
 
+  // ---- Morgen-Reflexion ----
+  function todayISO(){ const d=new Date(),p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+  function getReflection(){
+    if(!Array.isArray(state.reflections)) state.reflections=[];
+    let e=state.reflections.find(r=>r.date===todayISO());
+    if(!e){ e={date:todayISO(),gratitude:["","",""],joy:"",learning:""}; state.reflections.unshift(e); }
+    if(!Array.isArray(e.gratitude)) e.gratitude=["","",""];
+    while(e.gratitude.length<3) e.gratitude.push("");
+    return e;
+  }
+  function escAttr(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  function renderReflection(){
+    const e=getReflection();
+    const g=i=>'<input data-ref="g'+i+'" type="text" maxlength="240" placeholder="'+(i+1)+'. …" value="'+escAttr(e.gratitude[i])+'">';
+    document.getElementById("reflect").innerHTML=
+      '<div class="reflect-grid"><div><h4>🙏 Drei Dinge, für die ich dankbar bin</h4>'+g(0)+g(1)+g(2)+'</div>'+
+      '<div><h4>✨ Worauf ich mich heute freue</h4><input data-ref="joy" type="text" maxlength="240" placeholder="Eine Sache …" value="'+escAttr(e.joy)+'">'+
+      '<h4 style="margin-top:12px">💡 Was ich gestern gelernt habe</h4><input data-ref="learning" type="text" maxlength="240" placeholder="Ein Learning …" value="'+escAttr(e.learning)+'"></div></div>';
+    document.querySelectorAll('#reflect [data-ref]').forEach(inp=>{
+      inp.addEventListener("input",()=>{
+        const r=getReflection(),k=inp.dataset.ref;
+        if(k==="joy") r.joy=inp.value; else if(k==="learning") r.learning=inp.value; else r.gratitude[+k[1]]=inp.value;
+        state.reflections=state.reflections.slice(0,30);
+        queueSave();
+      });
+    });
+    renderReflHistory();
+  }
+  function renderReflHistory(){
+    const past=(state.reflections||[]).filter(r=>r.date!==todayISO()&&((r.gratitude||[]).some(x=>x&&x.trim())||r.joy||r.learning)).slice(0,7);
+    document.getElementById("reflHist").innerHTML=past.map(r=>{
+      const d=new Date(r.date+"T12:00:00");
+      const lbl=isNaN(d)?esc(r.date):d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
+      const parts=[]; const gs=(r.gratitude||[]).filter(x=>x&&x.trim());
+      if(gs.length) parts.push("🙏 "+gs.map(esc).join(" · "));
+      if(r.joy) parts.push("✨ "+esc(r.joy));
+      if(r.learning) parts.push("💡 "+esc(r.learning));
+      return '<div class="refl-h"><b>'+lbl+'</b><span>'+parts.join("<br>")+'</span></div>';
+    }).join("")||'<div class="empty">Noch keine früheren Einträge.</div>';
+    document.getElementById("reflCount").textContent=past.length;
+  }
+
   // ---- Render ----
   function esc(s){ return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
   function colorVar(c){ return c==="green"?"var(--green)":c==="sand"?"var(--sand)":"var(--coral)"; }
@@ -285,6 +345,9 @@
 
   function render(){
     document.getElementById("hTitle").innerHTML=(state.meta&&state.meta.title?esc(state.meta.title):"Dashboard")+' <span id="hDate">'+(state.meta&&state.meta.dateLabel?"· "+esc(state.meta.dateLabel):"")+'</span>';
+
+    // Morgen-Reflexion (nicht neu rendern, während Viktor tippt)
+    if(!document.querySelector('#reflect [data-ref]:focus')) renderReflection();
 
     // Goals
     document.getElementById("goals").innerHTML=(state.goals||[]).map(g=>
@@ -389,6 +452,17 @@
   }
   achToggle.addEventListener("click",()=>setAcc(!achWrap.classList.contains("open")));
   setAcc(localStorage.getItem(ACC_KEY)==="1");
+
+  // ---- Akkordeon „Frühere Einträge" (Reflexion) ----
+  const REFL_KEY="vl-refl-open";
+  const reflToggle=document.getElementById("reflToggle"), reflWrap=document.getElementById("reflWrap");
+  function setRefl(open){
+    reflWrap.classList.toggle("open",open);
+    reflToggle.setAttribute("aria-expanded",open?"true":"false");
+    try{localStorage.setItem(REFL_KEY,open?"1":"0");}catch(e){}
+  }
+  reflToggle.addEventListener("click",()=>setRefl(!reflWrap.classList.contains("open")));
+  setRefl(localStorage.getItem(REFL_KEY)==="1");
 
   render();
   loadRemote();
