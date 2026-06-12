@@ -128,8 +128,46 @@
   .foot button:hover{color:var(--coral);border-color:var(--coral-soft)}
   .foot .hint{width:100%;text-align:center;font-size:11.5px;color:var(--muted);margin-top:6px}
 
+  /* Reflexionsfrage des Tages */
+  .reflect-q{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  .reflect-q .rq-text{font-size:14.5px;font-weight:600;color:var(--ink);margin:2px 0 9px;line-height:1.45}
+
+  /* Roadmap 2026 */
+  .rm-focus{font-size:12.5px;color:var(--muted);margin:-6px 0 16px;padding:0 2px}
+  .rm-focus b{color:var(--coral)}
+  .roadmap{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 22px;box-shadow:var(--shadow)}
+  .rm-row{display:grid;grid-template-columns:84px 22px 1fr;gap:6px;align-items:start;position:relative;padding:15px 0}
+  .rm-row:not(:last-child)::after{content:"";position:absolute;left:94px;top:25px;bottom:-15px;width:2px;background:var(--line)}
+  .rm-month{font-size:13px;font-weight:700;color:var(--ink);padding-top:1px;letter-spacing:-.01em}
+  .rm-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--line);background:var(--card);margin:3px auto 0;z-index:1}
+  .rm-items{list-style:none;font-size:13px;color:var(--muted);line-height:1.75}
+  .rm-items li::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--coral-soft);margin:0 9px 3px 0;vertical-align:middle}
+  .rm-done .rm-dot{background:var(--green);border-color:var(--green)}
+  .rm-done .rm-month{color:var(--muted)}
+  .rm-active .rm-dot{background:var(--coral);border-color:var(--coral);box-shadow:0 0 0 4px rgba(217,101,72,.16)}
+  .rm-active .rm-month{color:var(--coral)}
+  .rm-milestone .rm-dot{width:17px;height:17px;background:var(--coral);border-color:var(--coral);margin-top:1px}
+  .rm-milestone .rm-month{color:var(--coral)}
+  .rm-milestone .rm-items{color:var(--ink);font-weight:600}
+  .rm-milestone .rm-items li::before{background:var(--coral)}
+
+  /* Wochen-Review */
+  .weekreview{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+  .wr-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 24px}
+  .wr-field h4{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .wr-field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#FCFAF6;resize:vertical;min-height:58px;line-height:1.5}
+  .wr-field textarea:focus{outline:none;border-color:var(--coral-soft);background:#fff}
+  .wr-meta{font-size:12px;color:var(--muted);margin-bottom:15px}
+  .wr-locked{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .wr-locked b{color:var(--ink)}
+  .wr-hist{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px}
+  .wr-hist .wh{padding:8px 2px;border-bottom:1px solid var(--line)}
+  .wr-hist .wh:last-child{border-bottom:none}
+  .wr-hist b{color:var(--coral);font-size:12px}
+  .wr-hist span{color:var(--muted);line-height:1.6}
+
   @media(max-width:980px){.kanban{grid-template-columns:repeat(2,1fr)}.goals{grid-template-columns:1fr 1fr}}
-  @media(max-width:640px){.kanban,.goals{grid-template-columns:1fr}h1{font-size:25px}.slot{min-width:46%}.sync{margin-left:0}}
+  @media(max-width:640px){.kanban,.goals{grid-template-columns:1fr}h1{font-size:25px}.slot{min-width:46%}.sync{margin-left:0}.reflect-grid,.wr-grid{grid-template-columns:1fr}.rm-row{grid-template-columns:72px 20px 1fr}.rm-row:not(:last-child)::after{left:81px}}
 </style>
 </head>
 <body>
@@ -168,6 +206,10 @@
   </button>
   <div class="ach-wrap" id="achWrap"><div class="ach" id="ach"></div></div>
 
+  <div class="section-label">Roadmap 2026 · wohin es geht</div>
+  <div class="rm-focus" id="rmFocus"></div>
+  <div class="roadmap" id="roadmap"></div>
+
   <div class="section-label">Termine heute</div>
   <div class="timeline"><div class="track" id="timeline"></div></div>
 
@@ -177,8 +219,12 @@
   <div class="section-label">Kanban — zieh die Karten, wie es bei dir läuft</div>
   <div class="kanban" id="board"></div>
 
+  <div class="section-label" id="wrLabel">Wochen-Review</div>
+  <div class="weekreview" id="weekreview"></div>
+
   <div class="foot">
     <button onclick="loadRemote(true)">Jetzt neu laden</button>
+    <button onclick="archiveDone()">Tag abschließen (Erledigte archivieren)</button>
     <button onclick="openConnect()">Verbindung verwalten</button>
     <div class="hint" id="footHint">Deine Daten liegen privat auf GitHub. Verbinde dich nur auf deinen eigenen Geräten.</div>
   </div>
@@ -238,7 +284,7 @@
   function b64encode(str){ return btoa(String.fromCharCode(...new TextEncoder().encode(str))); }
   function b64decode(b64){ const bin=atob(b64.replace(/\s/g,"")); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
 
-  const EMPTY = { meta:{title:"Dashboard",dateLabel:""}, reflections:[], goals:[], achievements:[], timeline:[], why:"", columns:[
+  const EMPTY = { meta:{title:"Dashboard",dateLabel:""}, reflections:[], goals:[], achievements:[], timeline:[], roadmap:[], weekReviews:[], why:"", columns:[
     {id:"now",title:"Jetzt — Hebel",cards:[]},{id:"week",title:"Diese Woche",cards:[]},
     {id:"later",title:"Später / Backlog",cards:[]},{id:"done",title:"Erledigt",cards:[]} ] };
 
@@ -301,23 +347,68 @@
   function getReflection(){
     if(!Array.isArray(state.reflections)) state.reflections=[];
     let e=state.reflections.find(r=>r.date===todayISO());
-    if(!e){ e={date:todayISO(),gratitude:["","",""],joy:"",learning:""}; state.reflections.unshift(e); }
+    if(!e){ e={date:todayISO(),gratitude:["","",""],joy:"",learning:"",question:"",answer:""}; state.reflections.unshift(e); }
     if(!Array.isArray(e.gratitude)) e.gratitude=["","",""];
     while(e.gratitude.length<3) e.gratitude.push("");
+    if(typeof e.answer!=="string") e.answer="";
     return e;
+  }
+
+  // ---- Reflexionsfrage des Tages (rotierende Bank, von Claude überschreibbar) ----
+  const QBANK=[
+    "Was war heute der eine Moment, der sich richtig angefühlt hat?",
+    "Wofür hättest du heute Nein sagen sollen?",
+    "Was hat dir heute am meisten Energie gegeben?",
+    "Welche Aufgabe schiebst du seit Tagen vor dir her, und warum eigentlich?",
+    "Wann warst du heute am klarsten im Kopf?",
+    "Was würdest du morgen anders machen?",
+    "Welcher Gedanke hat dich heute am meisten begleitet?",
+    "Was hast du heute getan, das wirklich nur du tun konntest?",
+    "Wo hast du heute aus dem Bauch entschieden, und wie fühlt es sich jetzt an?",
+    "Was hat dich heute gestresst, und war es das am Ende wert?",
+    "Welcher Mensch hat dir heute gutgetan?",
+    "Was hast du heute gelernt, das du behalten willst?",
+    "Worauf bist du heute stolz, auch wenn es klein war?",
+    "Was hast du heute aufgeschoben, das eigentlich leicht gewesen wäre?",
+    "Wann hast du dich heute am lebendigsten gefühlt?",
+    "Welche Sorge von gestern hat sich heute in Luft aufgelöst?",
+    "Was würde dein Ich in einem Jahr dir für morgen raten?",
+    "Wo hast du heute wieder zu schnell Ja gesagt?",
+    "Was hat heute besser funktioniert als gedacht?",
+    "Welchen kleinen Schritt Richtung deiner Ziele bist du heute gegangen?",
+    "Was brauchst du gerade mehr, Sicherheit oder Freiheit, und warum?",
+    "Wann hast du heute den Kopf wirklich abgeschaltet?",
+    "Was hat dich heute zum Lächeln gebracht?",
+    "Welche Aufgabe fühlte sich heute sinnvoll an, welche nur nach Pflicht?",
+    "Was hast du heute losgelassen?",
+    "Wo warst du heute zu hart mit dir selbst?",
+    "Was hat heute deine Arbeit spürbar leichter gemacht?",
+    "Welches Gespräch hat dich heute weitergebracht?",
+    "Was würdest du tun, wenn du morgen nur drei Stunden Zeit hättest?",
+    "Worauf freust du dich morgen wirklich?"
+  ];
+  function dayOfYear(){ const d=new Date(),s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/86400000); }
+  function dailyQuestion(){
+    if(state.dailyQuestion && state.dailyQuestionDate===todayISO()) return state.dailyQuestion;
+    return QBANK[dayOfYear()%QBANK.length];
   }
   function escAttr(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
   function renderReflection(){
     const e=getReflection();
+    const q=dailyQuestion(); e.question=q;
     const g=i=>'<input data-ref="g'+i+'" type="text" maxlength="240" placeholder="'+(i+1)+'. …" value="'+escAttr(e.gratitude[i])+'">';
     document.getElementById("reflect").innerHTML=
       '<div class="reflect-grid"><div><h4>🙏 Drei Dinge, für die ich dankbar bin</h4>'+g(0)+g(1)+g(2)+'</div>'+
       '<div><h4>✨ Worauf ich mich heute freue</h4><input data-ref="joy" type="text" maxlength="240" placeholder="Eine Sache …" value="'+escAttr(e.joy)+'">'+
-      '<h4 style="margin-top:12px">💡 Was ich gestern gelernt habe</h4><input data-ref="learning" type="text" maxlength="240" placeholder="Ein Learning …" value="'+escAttr(e.learning)+'"></div></div>';
+      '<h4 style="margin-top:12px">💡 Was ich gestern gelernt habe</h4><input data-ref="learning" type="text" maxlength="240" placeholder="Ein Learning …" value="'+escAttr(e.learning)+'"></div></div>'+
+      '<div class="reflect-q"><h4>🤔 Reflexionsfrage des Tages</h4><p class="rq-text">'+esc(q)+'</p>'+
+      '<input data-ref="answer" type="text" maxlength="300" placeholder="Deine Antwort … (optional)" value="'+escAttr(e.answer)+'"></div>';
     document.querySelectorAll('#reflect [data-ref]').forEach(inp=>{
       inp.addEventListener("input",()=>{
         const r=getReflection(),k=inp.dataset.ref;
-        if(k==="joy") r.joy=inp.value; else if(k==="learning") r.learning=inp.value; else r.gratitude[+k[1]]=inp.value;
+        if(k==="joy") r.joy=inp.value; else if(k==="learning") r.learning=inp.value;
+        else if(k==="answer"){ r.answer=inp.value; r.question=dailyQuestion(); }
+        else r.gratitude[+k[1]]=inp.value;
         state.reflections=state.reflections.slice(0,30);
         queueSave();
       });
@@ -325,7 +416,7 @@
     renderReflHistory();
   }
   function renderReflHistory(){
-    const past=(state.reflections||[]).filter(r=>r.date!==todayISO()&&((r.gratitude||[]).some(x=>x&&x.trim())||r.joy||r.learning)).slice(0,7);
+    const past=(state.reflections||[]).filter(r=>r.date!==todayISO()&&((r.gratitude||[]).some(x=>x&&x.trim())||r.joy||r.learning||r.answer)).slice(0,7);
     document.getElementById("reflHist").innerHTML=past.map(r=>{
       const d=new Date(r.date+"T12:00:00");
       const lbl=isNaN(d)?esc(r.date):d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
@@ -333,6 +424,7 @@
       if(gs.length) parts.push("🙏 "+gs.map(esc).join(" · "));
       if(r.joy) parts.push("✨ "+esc(r.joy));
       if(r.learning) parts.push("💡 "+esc(r.learning));
+      if(r.answer) parts.push("🤔 "+(r.question?"<i>"+esc(r.question)+"</i> ":"")+esc(r.answer));
       return '<div class="refl-h"><b>'+lbl+'</b><span>'+parts.join("<br>")+'</span></div>';
     }).join("")||'<div class="empty">Noch keine früheren Einträge.</div>';
     document.getElementById("reflCount").textContent=past.length;
@@ -365,6 +457,9 @@
       '<div class="slot'+(t.free?" free":"")+'"><div class="time">'+esc(t.time)+'</div><div class="ev">'+esc(t.ev)+'</div>'+
       (t.sub?'<div class="sub">'+esc(t.sub)+'</div>':'')+'</div>').join("");
 
+    // Roadmap
+    renderRoadmap();
+
     // Why
     document.getElementById("why").innerHTML=esc(state.why||"");
 
@@ -381,6 +476,7 @@
       colEl.addEventListener("drop",e=>{e.preventDefault();colEl.classList.remove("over");moveCard(dragId,col.id,getDragAfter(colEl,e.clientY));});
       board.appendChild(colEl);
     });
+    renderWeekReview();
     updateProgress();
   }
 
@@ -434,6 +530,79 @@
     document.getElementById("pc").textContent=done; document.getElementById("pt").textContent=total;
     document.getElementById("pf").style.width=(total?done/total*100:0)+"%";
     document.getElementById("kpi").innerHTML="<b>"+(total-done)+"</b>&nbsp;offen · "+done+" erledigt";
+  }
+
+  // ---- Roadmap ----
+  function renderRoadmap(){
+    const fc=document.getElementById("rmFocus");
+    if(fc) fc.innerHTML=state.roadmapFocus?esc(state.roadmapFocus).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>"):"";
+    document.getElementById("roadmap").innerHTML=(state.roadmap||[]).map(m=>{
+      const items=(m.items||[]).map(i=>'<li>'+esc(i)+'</li>').join("");
+      return '<div class="rm-row rm-'+(m.status||'planned')+'"><div class="rm-month">'+esc(m.month)+'</div><div class="rm-dot"></div><ul class="rm-items">'+items+'</ul></div>';
+    }).join("")||'<div class="empty">Noch keine Roadmap.</div>';
+  }
+
+  // ---- Wochen-Review ----
+  function isoWeek(d){
+    const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+    const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day);
+    const ys=new Date(Date.UTC(t.getUTCFullYear(),0,1));
+    const wk=Math.ceil((((t-ys)/86400000)+1)/7);
+    return t.getUTCFullYear()+"-W"+String(wk).padStart(2,"0");
+  }
+  function weekKey(){ return isoWeek(new Date()); }
+  function getWeekReview(){
+    if(!Array.isArray(state.weekReviews)) state.weekReviews=[];
+    let e=state.weekReviews.find(w=>w.week===weekKey());
+    if(!e){ e={week:weekKey(),overall:"",good:"",energy:"",learned:""}; state.weekReviews.unshift(e); }
+    return e;
+  }
+  function weekHistory(){
+    const past=(state.weekReviews||[]).filter(w=>w.week!==weekKey()&&(w.good||w.energy||w.learned||w.overall)).slice(0,4);
+    if(!past.length) return "";
+    return '<div class="wr-hist">'+past.map(w=>{
+      const parts=[];
+      if(w.overall) parts.push("🌥️ "+esc(w.overall));
+      if(w.good) parts.push("🌱 "+esc(w.good));
+      if(w.energy) parts.push("🔋 "+esc(w.energy));
+      if(w.learned) parts.push("💡 "+esc(w.learned));
+      return '<div class="wh"><b>KW '+esc((w.week||"").replace(/^.*-W/,""))+'</b><br><span>'+parts.join("<br>")+'</span></div>';
+    }).join("")+'</div>';
+  }
+  function renderWeekReview(){
+    const host=document.getElementById("weekreview"); if(!host) return;
+    if(document.querySelector('#weekreview [data-wr]:focus')) return; // nicht neu rendern während Viktor tippt
+    const day=new Date().getDay(); // 0=So, 5=Fr, 6=Sa
+    const isWeekend=(day===5||day===6||day===0);
+    const fields=[
+      ["overall","🌥️ Wie war die Woche?","In zwei, drei Sätzen …"],
+      ["good","🌱 Was hat mir gutgetan?","Menschen, Momente, Erfolge …"],
+      ["energy","🔋 Was hat Energie gezogen?","Was war zäh oder hat gestresst?"],
+      ["learned","💡 Was habe ich gelernt?","Ein Learning für nächste Woche …"]
+    ];
+    if(isWeekend){
+      const e=getWeekReview();
+      const ta=(k,h,p)=>'<div class="wr-field"><h4>'+h+'</h4><textarea data-wr="'+k+'" maxlength="600" placeholder="'+p+'">'+esc(e[k]||"")+'</textarea></div>';
+      host.innerHTML='<div class="wr-meta">Kalenderwoche '+esc((e.week||"").replace(/^.*-W/,""))+'. Nimm dir fünf Minuten und schau zurück.</div>'+
+        '<div class="wr-grid">'+fields.map(f=>ta(f[0],f[1],f[2])).join("")+'</div>'+weekHistory();
+      host.querySelectorAll('[data-wr]').forEach(t=>{
+        t.addEventListener("input",()=>{ const r=getWeekReview(); r[t.dataset.wr]=t.value; state.weekReviews=state.weekReviews.slice(0,12); queueSave(); });
+      });
+    } else {
+      host.innerHTML='<div class="wr-locked">Der Wochen-Review wartet aufs Wochenende. Von <b>Freitag bis Sonntag</b> schaust du hier zurück: was gut war, was Energie gezogen hat, was du gelernt hast.</div>'+weekHistory();
+    }
+  }
+
+  // ---- Tag abschließen: Erledigte archivieren ----
+  function archiveDone(){
+    const done=(state.columns||[]).find(c=>c.id==="done");
+    if(!done||!done.cards.length){ alert("Die Erledigt-Spalte ist schon leer."); return; }
+    if(!confirm("Die "+done.cards.length+" erledigten Karten in die Erfolge verschieben und die Spalte leeren?")) return;
+    const dt=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
+    const titles=done.cards.map(c=>{ const t=(c.title||"").replace(/\s*\(\d{2}\.\d{2}\.?\)\s*$/,"").trim(); return t+" ("+dt+")"; });
+    state.achievements=[...titles,...(state.achievements||[])];
+    done.cards=[];
+    render(); queueSave();
   }
 
   document.getElementById("fSave").addEventListener("click",saveEditor);
