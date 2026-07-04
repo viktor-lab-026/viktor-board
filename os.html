@@ -359,7 +359,7 @@
         <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-cmd"><div class="t">Commands (12)</div><div class="p">.claude/commands/</div></div>
       </foreignObject>
       <foreignObject class="node-fo" x="1120" y="348" width="160" height="60" style="animation-delay:1.5s">
-        <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-skills"><div class="t">Skills (38)</div><div class="p">~/.claude/skills/</div></div>
+        <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-skills"><div class="t">Skills (39)</div><div class="p">~/.claude/skills/</div></div>
       </foreignObject>
       <foreignObject class="node-fo" x="1085" y="490" width="170" height="60" style="animation-delay:1.6s">
         <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-dash"><div class="t">Dashboard</div><div class="p">viktor-board</div></div>
@@ -418,7 +418,7 @@
       <div class="omhead">3 · HQ <span>Steuerung</span></div>
       <button class="omnode" data-node="hq-hub"><span class="ont">HQ</span><span class="onp">Steuerung</span></button>
       <button class="omnode" data-node="hq-cmd"><span class="ont">Commands (12)</span><span class="onp">.claude/commands/</span></button>
-      <button class="omnode" data-node="hq-skills"><span class="ont">Skills (38)</span><span class="onp">~/.claude/skills/</span></button>
+      <button class="omnode" data-node="hq-skills"><span class="ont">Skills (39)</span><span class="onp">~/.claude/skills/</span></button>
       <button class="omnode" data-node="hq-dash"><span class="ont">Dashboard</span><span class="onp">viktor-board</span></button>
       <button class="omnode" data-node="hq-logs"><span class="ont">Logs</span><span class="onp">~/.claude/logs/</span></button>
     </div>
@@ -555,7 +555,7 @@
 
       <!-- Content -->
       <div class="cluster" data-cat="content">
-        <div class="clabel reveal"><span class="ci">Content und Reichweite</span><h3>Aus Wissen werden Posts</h3><span class="cn">6 Skills</span></div>
+        <div class="clabel reveal"><span class="ci">Content und Reichweite</span><h3>Aus Wissen werden Posts</h3><span class="cn">7 Skills</span></div>
         <div class="skillgrid">
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/ideen</span><p>Vier Post-Ideen nach den vier Säulen. Das wöchentliche Planungs-Ritual.</p></div>
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/content-post</span><p>Vom Gedanken bis Ready to post. Der ganze LinkedIn-Workflow im eigenen Schreibstil.</p></div>
@@ -563,6 +563,7 @@
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/linkedin-analyse</span><p>Bewertet einen Post auf fünf Dimensionen und sagt konkret, was besser geht.</p></div>
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/erfolgsbeschleuniger</span><p>Wöchentliche Community-Posts: Montag Action Steps, Sonntag Rückblick.</p></div>
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/mailerlite-kampagne</span><p>Setzt E-Mail-Kampagnen und ganze Sequenzen im eigenen Schreibstil auf.</p></div>
+          <div class="skillcard reveal" data-cat="content"><span class="cmd">/ki-update</span><p>Schickt mehrere Rechercheure parallel los und fasst die aktuellen KI-News als Newsletter ins Postfach.</p></div>
         </div>
       </div>
 
@@ -726,7 +727,7 @@ const NODES={
   'brain-memory':{k:'var(--brain)',t:'Memory',p:'~/.claude/…/memory/',b:'Dynamisches Gedächtnis: gelernte Patterns, Feedback, Projektkontext mit Halbwertszeit. Index ist MEMORY.md.',w:'Anfassen: via /log (anlegen) und /clean (aufräumen).'},
   'hq-hub':{k:'var(--hq)',t:'3 · HQ',p:'Steuerung',b:'Womit ich arbeite: Commands, Skills, Automatik (Scripts, Hooks wie der style-lint-Schreibwächter, Backup-Lauf), Dashboard und Logs. Alles, was etwas tut.',w:'Anfassen: wenn ein wiederkehrender Workflow entsteht.'},
   'hq-cmd':{k:'var(--hq)',t:'Commands',p:'.claude/commands/',b:'12 Workspace-Befehle: prime, coach, dump, denkpartner, log, clean, feierabend, die drei Rückblicke, erfolgsbeschleuniger und session-auswertung.',w:'Anfassen: wenn ein Ablauf dazukommt oder sich ändert.'},
-  'hq-skills':{k:'var(--hq)',t:'Skills',p:'~/.claude/skills/',b:'38 eigene Skills von coach über crm bis landingpage. Trigger steht im Skill-Header.',w:'Anfassen: wenn ein neuer wiederkehrender Workflow entsteht.'},
+  'hq-skills':{k:'var(--hq)',t:'Skills',p:'~/.claude/skills/',b:'39 eigene Skills von coach über crm bis landingpage. Trigger steht im Skill-Header.',w:'Anfassen: wenn ein neuer wiederkehrender Workflow entsteht.'},
   'hq-dash':{k:'var(--hq)',t:'Dashboard',p:'viktor-board',b:'Diese Seite und das Kanban. Frontend public auf GitHub Pages, Daten privat.',w:'Voller Sync nur via /feierabend, einmal am Tag. current-data ist Master.'},
   'hq-logs':{k:'var(--hq)',t:'Logs',p:'~/.claude/logs/',b:'Daily, Weekly, Monthly, plus das Morgen-Briefing. Das Gedächtnis der Rückblicke.',w:'/log schreibt Daily, die Rückblicke schreiben Weekly und Monthly.'},
   'abs-hub':{k:'var(--gold)',t:'4 · Absicherung',p:'Backup · aktiv',b:'Verschlüsseltes Backup, sensible Daten strikt getrennt. Seit Juni aktiv, läuft automatisch zum Feierabend mit.',w:'Anfassen: bei Änderungen an der Backup-Mechanik.'},
