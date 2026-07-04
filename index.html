@@ -484,10 +484,13 @@
     document.getElementById("ach").innerHTML=(state.achievements||[]).map(a=>'<span class="chip">'+esc(a)+'</span>').join("");
     document.getElementById("achCount").textContent=(state.achievements||[]).length;
 
-    // Timeline
-    document.getElementById("timeline").innerHTML=(state.timeline||[]).map(t=>
+    // Timeline: nur Heute/Zukunft. Eintraege mit t.date < heute (z.B. Vortag) ausblenden. Eintraege ohne date bleiben sichtbar (Kompat).
+    const _tlToday=todayISO();
+    const _tl=(state.timeline||[]).filter(t=>!t.date||t.date>=_tlToday);
+    document.getElementById("timeline").innerHTML=_tl.length?_tl.map(t=>
       '<div class="slot'+(t.free?" free":"")+'"><div class="time">'+esc(t.time)+'</div><div class="ev">'+esc(t.ev)+'</div>'+
-      (t.sub?'<div class="sub">'+esc(t.sub)+'</div>':'')+'</div>').join("");
+      (t.sub?'<div class="sub">'+esc(t.sub)+'</div>':'')+'</div>').join("")
+      :'<div class="slot free"><div class="ev">Keine Termine für heute</div></div>';
 
     // Roadmap
     renderRoadmap();
