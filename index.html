@@ -3,11 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
+<title>Viktor · Board</title>
+<meta name="theme-color" content="#F4EEE6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-512.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Board">
 <style>
   :root{
     --coral:#D96548; --coral-soft:#E8A491; --bg:#F4EEE6; --card:#FFFFFF; --ink:#2A2724;
-    --muted:#8C8378; --line:#E4DACE; --green:#7C9A6E; --sand:#C9A06B;
+    --muted:#6B635A; --line:#E4DACE; --green:#7C9A6E; --sand:#C9A06B;
     --shadow:0 1px 2px rgba(42,39,36,.04),0 8px 24px rgba(42,39,36,.06);
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -77,7 +84,7 @@
   .slot::before{content:"";display:block;height:3px;background:var(--coral-soft);border-radius:2px;margin-bottom:11px}
   .slot.free::before{background:var(--line)}.slot.free .time{color:var(--muted)}
 
-  .note{padding:16px 20px;background:#FBF7F1;border-left:3px solid var(--coral);border-radius:0 12px 12px 0;font-size:13.5px}
+  .note{padding:16px 20px;background:#FBF7F1;border:1px solid var(--coral-soft);border-radius:12px;font-size:13.5px}
 
   .progress-row{display:flex;align-items:center;gap:14px;margin:6px 0 0}
   .bar{flex:1;height:8px;background:var(--line);border-radius:999px;overflow:hidden}
@@ -93,9 +100,12 @@
   .col-head .add{margin-left:auto;width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .col-head .add:hover{color:var(--coral);border-color:var(--coral-soft)}
   .col[data-col="done"] .col-head h3{color:var(--green)}
-  .card-k{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 11px;margin-bottom:10px;box-shadow:var(--shadow);cursor:grab;position:relative;border-left:3px solid transparent}
+  .card-k{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 11px;margin-bottom:10px;box-shadow:var(--shadow);cursor:grab;position:relative}
   .card-k:active{cursor:grabbing}.card-k.dragging{opacity:.4}
-  .card-k.p-top{border-left-color:var(--coral)}.card-k.p-care{border-left-color:var(--sand)}.card-k.p-week{border-left-color:var(--green)}
+  .card-k .tt::before{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 7px 1px 0;vertical-align:middle}
+  .card-k.p-top .tt::before{content:"";background:var(--coral)}
+  .card-k.p-care .tt::before{content:"";background:var(--sand)}
+  .card-k.p-week .tt::before{content:"";background:var(--green)}
   .card-k .tt{font-size:14px;font-weight:600;letter-spacing:-.01em;padding-right:34px}
   .card-k .dd{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
   .card-k .ptag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-top:9px}
@@ -166,6 +176,8 @@
   .wr-hist b{color:var(--coral);font-size:12px}
   .wr-hist span{color:var(--muted);line-height:1.6}
 
+  /* Touch: Hover gibt es nicht, Karten-Aktionen immer zeigen */
+  @media(hover:none){.card-k .ops{opacity:1}}
   @media(max-width:980px){.kanban{grid-template-columns:repeat(2,1fr)}.goals{grid-template-columns:1fr 1fr}}
   @media(max-width:640px){.kanban,.goals{grid-template-columns:1fr}h1{font-size:25px}.slot{min-width:46%}.sync{margin-left:0}.reflect-grid,.wr-grid{grid-template-columns:1fr}.rm-row{grid-template-columns:72px 20px 1fr}.rm-row:not(:last-child)::after{left:81px}}
 </style>
@@ -177,7 +189,7 @@
     <h1 id="hTitle">Dashboard <span id="hDate"></span></h1>
     <div class="meta">
       <a class="badge" href="os.html" style="text-decoration:none;color:inherit">🧠 Skills &amp; OS</a>
-      <span class="badge"><span class="dot"></span>Fokus: <b>Kurslaunch + Workshop</b></span>
+      <span class="badge" id="focusBadge" style="display:none"><span class="dot"></span>Fokus: <b id="focusTxt"></b></span>
       <span class="badge" id="kpi"></span>
       <span class="badge" id="fresh" style="display:none"></span>
       <span class="sync" id="syncBadge" onclick="openConnect()"><span class="d"></span><span id="syncTxt">Nicht verbunden</span></span>
@@ -279,6 +291,7 @@
   const CACHE_KEY = "vl-dashboard-cache";
   let remoteSha = null, saveTimer = null, syncing = false;
   let lastETag = null, lastDataAt = null, lastLocalEdit = 0;
+  let dirty = false; // ungespeicherte lokale Aenderungen: Poll darf state nie ueberschreiben
 
   const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
   function setSync(cls, txt){ const b=document.getElementById("syncBadge"); b.className="sync "+cls; document.getElementById("syncTxt").textContent=txt; }
@@ -291,7 +304,7 @@
     {id:"later",title:"Später / Backlog",cards:[]},{id:"done",title:"Erledigt",cards:[]} ] };
 
   let state = loadCache() || structuredClone(EMPTY);
-  let dragId=null, editCtx=null;
+  let dragId=null, editCtx=null, suppressClick=false;
 
   function loadCache(){ try{ const s=JSON.parse(localStorage.getItem(CACHE_KEY)); if(s&&s.columns) return s; }catch(e){} return null; }
   function cache(){ localStorage.setItem(CACHE_KEY, JSON.stringify(state)); }
@@ -317,7 +330,7 @@
 
   // ---- Auto-Refresh: alle 60s prüfen, ob es eine neue Version gibt (ETag, zählt bei 304 nicht gegen das Rate-Limit) ----
   async function pollRemote(){
-    const token=getToken(); if(!token||syncing||dragId) return;
+    const token=getToken(); if(!token||syncing||dragId||dirty) return;
     if(Date.now()-lastLocalEdit<8000) return; // nicht reinpfuschen, während ein Save aussteht
     if(document.querySelector('#reflect [data-ref]:focus')||document.querySelector('#weekreview [data-wr]:focus')) return;
     try{
@@ -344,9 +357,9 @@
   setInterval(renderFreshness,30000);
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) pollRemote(); });
 
-  function queueSave(){ cache(); lastLocalEdit=Date.now(); if(!getToken()) return; clearTimeout(saveTimer); setSync("busy","Speichert…"); saveTimer=setTimeout(saveRemote,1200); }
+  function queueSave(){ cache(); dirty=true; lastLocalEdit=Date.now(); if(!getToken()) return; clearTimeout(saveTimer); setSync("busy","Speichert…"); saveTimer=setTimeout(saveRemote,1200); }
 
-  async function saveRemote(){
+  async function saveRemote(isRetry){
     const token=getToken(); if(!token) return;
     if(syncing){ clearTimeout(saveTimer); saveTimer=setTimeout(saveRemote,800); return; }
     syncing=true;
@@ -357,9 +370,16 @@
       if(remoteSha) payload.sha=remoteSha;
       const r=await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${encodeURIComponent(GH.path)}`,
         {method:"PUT",headers:{Authorization:`Bearer ${token}`,Accept:"application/vnd.github+json"},body:JSON.stringify(payload)});
-      if(r.status===409){ syncing=false; await loadRemote(); return; }
+      if(r.status===409&&!isRetry){
+        // Konflikt: frischen sha holen und lokalen Stand einmal erneut schreiben, statt Eingaben zu verwerfen
+        const rs=await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${encodeURIComponent(GH.path)}?ref=${GH.branch}&t=${Date.now()}`,
+          {headers:{Authorization:`Bearer ${token}`,Accept:"application/vnd.github+json"}});
+        if(rs.ok){ const js=await rs.json(); remoteSha=js.sha; lastETag=null; syncing=false; return saveRemote(true); }
+        throw new Error("Konflikt, sha nicht ladbar");
+      }
       if(!r.ok) throw new Error("HTTP "+r.status);
       const j=await r.json(); remoteSha=j.content.sha;
+      dirty=false;
       setSync("ok","Verbunden ✓");
     }catch(e){ setSync("err","Speicherfehler"); console.error(e); }
     finally{ syncing=false; }
@@ -387,6 +407,25 @@
   }
 
   // ---- Reflexionsfrage des Tages (rotierende Bank, von Claude überschreibbar) ----
+  // Vormittags (bis 14 Uhr) kommt eine Morgen-Frage, danach eine Rueckblick-Frage.
+  // Sobald eine Antwort fuer heute existiert, bleibt die gespeicherte Frage stabil.
+  const QBANK_MORGEN=[
+    "Was ist heute die eine Sache, die den Tag gut macht, wenn sie fertig wird?",
+    "Worauf hast du heute richtig Bock?",
+    "Was waere heute ein ehrliches 80-Prozent-Ergebnis statt Perfektion?",
+    "Wem koenntest du heute eine kleine Freude machen?",
+    "Was laesst du heute bewusst liegen?",
+    "Wo sagt dein Bauch heute schon Ja oder Nein?",
+    "Welche Aufgabe zuerst, damit der Kopf frei wird?",
+    "Was wuerde den heutigen Tag leicht machen?",
+    "Welchen kleinen Schritt Richtung Kurs gehst du heute?",
+    "Wofuer willst du heute Abend dankbar sein koennen?",
+    "Was brauchst du heute mehr, Fokus oder Pause?",
+    "Welches Gespraech willst du heute nicht aufschieben?",
+    "Was kannst du heute an die KI abgeben?",
+    "Wo willst du heute einmal bewusst langsamer machen?",
+    "Was darf heute unperfekt rausgehen?"
+  ];
   const QBANK=[
     "Was war heute der eine Moment, der sich richtig angefühlt hat?",
     "Wofür hättest du heute Nein sagen sollen?",
@@ -422,7 +461,10 @@
   function dayOfYear(){ const d=new Date(),s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/86400000); }
   function dailyQuestion(){
     if(state.dailyQuestion && state.dailyQuestionDate===todayISO()) return state.dailyQuestion;
-    return QBANK[dayOfYear()%QBANK.length];
+    const e=(state.reflections||[]).find(r=>r.date===todayISO());
+    if(e&&e.answer&&e.question) return e.question; // beantwortete Frage nicht mehr wechseln
+    const bank=new Date().getHours()<14?QBANK_MORGEN:QBANK;
+    return bank[dayOfYear()%bank.length];
   }
   function escAttr(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
   function renderReflection(){
@@ -469,6 +511,11 @@
 
   function render(){
     document.getElementById("hTitle").innerHTML=(state.meta&&state.meta.title?esc(state.meta.title):"Dashboard")+' <span id="hDate">'+(state.meta&&state.meta.dateLabel?"· "+esc(state.meta.dateLabel):"")+'</span>';
+
+    // Fokus-Badge aus board.json (meta.focus), damit er nie veraltet
+    const fb=document.getElementById("focusBadge");
+    if(state.meta&&state.meta.focus){ document.getElementById("focusTxt").textContent=state.meta.focus; fb.style.display="inline-flex"; }
+    else fb.style.display="none";
 
     // Morgen-Reflexion (nicht neu rendern, während Viktor tippt)
     if(!document.querySelector('#reflect [data-ref]:focus')) renderReflection();
@@ -520,8 +567,10 @@
     const tag=card.prio?'<span class="ptag '+card.prio+'">'+prioLabel(card.prio)+'</span>':'';
     el.innerHTML='<div class="ops"><button title="Bearbeiten" data-act="edit">✎</button><button title="Löschen" data-act="del">×</button></div>'+
       '<div class="tt">'+esc(card.title)+'</div>'+(card.desc?'<div class="dd">'+esc(card.desc)+'</div>':'')+tag;
-    el.addEventListener("dragstart",()=>{dragId=card.id;el.classList.add("dragging");});
-    el.addEventListener("dragend",()=>el.classList.remove("dragging"));
+    el.addEventListener("dragstart",()=>{dragId=card.id;suppressClick=true;el.classList.add("dragging");});
+    el.addEventListener("dragend",()=>{el.classList.remove("dragging");setTimeout(()=>suppressClick=false,150);});
+    // Tap/Klick auf die Karte oeffnet den Editor. Wichtig fuers iPhone: dort gibt es kein Drag und kein Hover.
+    el.addEventListener("click",()=>{if(suppressClick)return;openEditor(colId,card.id);});
     el.querySelector('[data-act="edit"]').addEventListener("click",e=>{e.stopPropagation();openEditor(colId,card.id);});
     el.querySelector('[data-act="del"]').addEventListener("click",e=>{e.stopPropagation();delCard(card.id);});
     return el;
@@ -561,7 +610,11 @@
     closeEditor(); render(); queueSave();
   }
   function updateProgress(){
-    let total=0,done=0; (state.columns||[]).forEach(c=>{total+=c.cards.length;if(c.id==="done")done+=c.cards.length;});
+    // Backlog zaehlt nicht mit: Fortschritt = Jetzt + Diese Woche + Erledigt
+    let total=0,done=0; (state.columns||[]).forEach(c=>{
+      if(c.id==="later") return;
+      total+=c.cards.length; if(c.id==="done") done+=c.cards.length;
+    });
     document.getElementById("pc").textContent=done; document.getElementById("pt").textContent=total;
     document.getElementById("pf").style.width=(total?done/total*100:0)+"%";
     document.getElementById("kpi").innerHTML="<b>"+(total-done)+"</b>&nbsp;offen · "+done+" erledigt";
@@ -636,6 +689,11 @@
     const dt=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
     const titles=done.cards.map(c=>{ const t=(c.title||"").replace(/\s*\(\d{2}\.\d{2}\.?\)\s*$/,"").trim(); return t+" ("+dt+")"; });
     state.achievements=[...titles,...(state.achievements||[])];
+    // Rotation: die Liste waechst sonst unbegrenzt. Aeltestes wandert ins Archiv-Feld (bleibt in board.json erhalten).
+    if(state.achievements.length>80){
+      state.achievementsArchive=[...state.achievements.slice(80),...(state.achievementsArchive||[])];
+      state.achievements=state.achievements.slice(0,80);
+    }
     done.cards=[];
     render(); queueSave();
   }

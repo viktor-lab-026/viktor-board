@@ -1,0 +1,13 @@
+{
+  "name": "Viktor Board",
+  "short_name": "Board",
+  "description": "Persönliches Tages- und Ziel-Dashboard",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F4EEE6",
+  "theme_color": "#F4EEE6",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
