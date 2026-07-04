@@ -291,7 +291,7 @@
   const CACHE_KEY = "vl-dashboard-cache";
   let remoteSha = null, saveTimer = null, syncing = false;
   let lastETag = null, lastDataAt = null, lastLocalEdit = 0;
-  let dirty = false; // ungespeicherte lokale Aenderungen: Poll darf state nie ueberschreiben
+  let dirty = false; // ungespeicherte lokale Änderungen: Poll darf state nie überschreiben
 
   const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
   function setSync(cls, txt){ const b=document.getElementById("syncBadge"); b.className="sync "+cls; document.getElementById("syncTxt").textContent=txt; }
@@ -407,64 +407,47 @@
   }
 
   // ---- Reflexionsfrage des Tages (rotierende Bank, von Claude überschreibbar) ----
-  // Vormittags (bis 14 Uhr) kommt eine Morgen-Frage, danach eine Rueckblick-Frage.
-  // Sobald eine Antwort fuer heute existiert, bleibt die gespeicherte Frage stabil.
-  const QBANK_MORGEN=[
+  // Gehört zur Morgen-Reflexion: alle Fragen sind morgens beantwortbar.
+  // Blick nach vorn auf heute oder Rückblick explizit auf gestern, nie "heute Abend"-Bilanz.
+  // Sobald eine Antwort für heute existiert, bleibt die gespeicherte Frage stabil.
+  const QBANK=[
     "Was ist heute die eine Sache, die den Tag gut macht, wenn sie fertig wird?",
     "Worauf hast du heute richtig Bock?",
-    "Was waere heute ein ehrliches 80-Prozent-Ergebnis statt Perfektion?",
-    "Wem koenntest du heute eine kleine Freude machen?",
-    "Was laesst du heute bewusst liegen?",
+    "Was wäre heute ein ehrliches 80-Prozent-Ergebnis statt Perfektion?",
+    "Wem könntest du heute eine kleine Freude machen?",
+    "Was lässt du heute bewusst liegen?",
     "Wo sagt dein Bauch heute schon Ja oder Nein?",
     "Welche Aufgabe zuerst, damit der Kopf frei wird?",
-    "Was wuerde den heutigen Tag leicht machen?",
+    "Was würde den heutigen Tag leicht machen?",
     "Welchen kleinen Schritt Richtung Kurs gehst du heute?",
-    "Wofuer willst du heute Abend dankbar sein koennen?",
+    "Wofür willst du heute Abend dankbar sein können?",
     "Was brauchst du heute mehr, Fokus oder Pause?",
-    "Welches Gespraech willst du heute nicht aufschieben?",
+    "Welches Gespräch willst du heute nicht aufschieben?",
     "Was kannst du heute an die KI abgeben?",
     "Wo willst du heute einmal bewusst langsamer machen?",
-    "Was darf heute unperfekt rausgehen?"
-  ];
-  const QBANK=[
-    "Was war heute der eine Moment, der sich richtig angefühlt hat?",
-    "Wofür hättest du heute Nein sagen sollen?",
-    "Was hat dir heute am meisten Energie gegeben?",
-    "Welche Aufgabe schiebst du seit Tagen vor dir her, und warum eigentlich?",
-    "Wann warst du heute am klarsten im Kopf?",
-    "Was würdest du morgen anders machen?",
-    "Welcher Gedanke hat dich heute am meisten begleitet?",
-    "Was hast du heute getan, das wirklich nur du tun konntest?",
-    "Wo hast du heute aus dem Bauch entschieden, und wie fühlt es sich jetzt an?",
-    "Was hat dich heute gestresst, und war es das am Ende wert?",
-    "Welcher Mensch hat dir heute gutgetan?",
-    "Was hast du heute gelernt, das du behalten willst?",
-    "Worauf bist du heute stolz, auch wenn es klein war?",
-    "Was hast du heute aufgeschoben, das eigentlich leicht gewesen wäre?",
-    "Wann hast du dich heute am lebendigsten gefühlt?",
-    "Welche Sorge von gestern hat sich heute in Luft aufgelöst?",
-    "Was würde dein Ich in einem Jahr dir für morgen raten?",
-    "Wo hast du heute wieder zu schnell Ja gesagt?",
-    "Was hat heute besser funktioniert als gedacht?",
-    "Welchen kleinen Schritt Richtung deiner Ziele bist du heute gegangen?",
+    "Was darf heute unperfekt rausgehen?",
+    "Was war gestern der Moment, der sich richtig angefühlt hat?",
+    "Was hat dir gestern am meisten Energie gegeben?",
+    "Was hat dich gestern gestresst, und war es das wert?",
+    "Was hast du gestern gelernt, das du heute nutzen kannst?",
+    "Worauf bist du von gestern stolz, auch wenn es klein war?",
+    "Welche Sorge von gestern darfst du heute loslassen?",
+    "Wo warst du gestern zu hart mit dir selbst?",
+    "Was hat gestern besser funktioniert als gedacht?",
+    "Welcher Mensch hat dir gestern gutgetan?",
+    "Was hast du gestern aufgeschoben, das heute dran ist?",
+    "Was machst du heute anders als gestern?",
+    "Wann warst du gestern am klarsten im Kopf?",
+    "Wo hast du gestern zu schnell Ja gesagt?",
     "Was brauchst du gerade mehr, Sicherheit oder Freiheit, und warum?",
-    "Wann hast du heute den Kopf wirklich abgeschaltet?",
-    "Was hat dich heute zum Lächeln gebracht?",
-    "Welche Aufgabe fühlte sich heute sinnvoll an, welche nur nach Pflicht?",
-    "Was hast du heute losgelassen?",
-    "Wo warst du heute zu hart mit dir selbst?",
-    "Was hat heute deine Arbeit spürbar leichter gemacht?",
-    "Welches Gespräch hat dich heute weitergebracht?",
-    "Was würdest du tun, wenn du morgen nur drei Stunden Zeit hättest?",
-    "Worauf freust du dich morgen wirklich?"
+    "Was würde dein Ich in einem Jahr dir für heute raten?"
   ];
   function dayOfYear(){ const d=new Date(),s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/86400000); }
   function dailyQuestion(){
     if(state.dailyQuestion && state.dailyQuestionDate===todayISO()) return state.dailyQuestion;
     const e=(state.reflections||[]).find(r=>r.date===todayISO());
     if(e&&e.answer&&e.question) return e.question; // beantwortete Frage nicht mehr wechseln
-    const bank=new Date().getHours()<14?QBANK_MORGEN:QBANK;
-    return bank[dayOfYear()%bank.length];
+    return QBANK[dayOfYear()%QBANK.length];
   }
   function escAttr(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
   function renderReflection(){
@@ -531,7 +514,7 @@
     document.getElementById("ach").innerHTML=(state.achievements||[]).map(a=>'<span class="chip">'+esc(a)+'</span>').join("");
     document.getElementById("achCount").textContent=(state.achievements||[]).length;
 
-    // Timeline: nur Heute/Zukunft. Eintraege mit t.date < heute (z.B. Vortag) ausblenden. Eintraege ohne date bleiben sichtbar (Kompat).
+    // Timeline: nur Heute/Zukunft. Einträge mit t.date < heute (z.B. Vortag) ausblenden. Einträge ohne date bleiben sichtbar (Kompat).
     const _tlToday=todayISO();
     const _tl=(state.timeline||[]).filter(t=>!t.date||t.date>=_tlToday);
     document.getElementById("timeline").innerHTML=_tl.length?_tl.map(t=>
@@ -569,7 +552,7 @@
       '<div class="tt">'+esc(card.title)+'</div>'+(card.desc?'<div class="dd">'+esc(card.desc)+'</div>':'')+tag;
     el.addEventListener("dragstart",()=>{dragId=card.id;suppressClick=true;el.classList.add("dragging");});
     el.addEventListener("dragend",()=>{el.classList.remove("dragging");setTimeout(()=>suppressClick=false,150);});
-    // Tap/Klick auf die Karte oeffnet den Editor. Wichtig fuers iPhone: dort gibt es kein Drag und kein Hover.
+    // Tap/Klick auf die Karte öffnet den Editor. Wichtig fürs iPhone: dort gibt es kein Drag und kein Hover.
     el.addEventListener("click",()=>{if(suppressClick)return;openEditor(colId,card.id);});
     el.querySelector('[data-act="edit"]').addEventListener("click",e=>{e.stopPropagation();openEditor(colId,card.id);});
     el.querySelector('[data-act="del"]').addEventListener("click",e=>{e.stopPropagation();delCard(card.id);});
@@ -610,7 +593,7 @@
     closeEditor(); render(); queueSave();
   }
   function updateProgress(){
-    // Backlog zaehlt nicht mit: Fortschritt = Jetzt + Diese Woche + Erledigt
+    // Backlog zählt nicht mit: Fortschritt = Jetzt + Diese Woche + Erledigt
     let total=0,done=0; (state.columns||[]).forEach(c=>{
       if(c.id==="later") return;
       total+=c.cards.length; if(c.id==="done") done+=c.cards.length;
@@ -689,7 +672,7 @@
     const dt=new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
     const titles=done.cards.map(c=>{ const t=(c.title||"").replace(/\s*\(\d{2}\.\d{2}\.?\)\s*$/,"").trim(); return t+" ("+dt+")"; });
     state.achievements=[...titles,...(state.achievements||[])];
-    // Rotation: die Liste waechst sonst unbegrenzt. Aeltestes wandert ins Archiv-Feld (bleibt in board.json erhalten).
+    // Rotation: die Liste wächst sonst unbegrenzt. Ältestes wandert ins Archiv-Feld (bleibt in board.json erhalten).
     if(state.achievements.length>80){
       state.achievementsArchive=[...state.achievements.slice(80),...(state.achievementsArchive||[])];
       state.achievements=state.achievements.slice(0,80);
