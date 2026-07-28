@@ -359,7 +359,7 @@
         <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-cmd"><div class="t">Commands (12)</div><div class="p">.claude/commands/</div></div>
       </foreignObject>
       <foreignObject class="node-fo" x="1120" y="348" width="160" height="60" style="animation-delay:1.5s">
-        <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-skills"><div class="t">Skills (39)</div><div class="p">~/.claude/skills/</div></div>
+        <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-skills"><div class="t">Skills (49)</div><div class="p">~/.claude/skills/</div></div>
       </foreignObject>
       <foreignObject class="node-fo" x="1085" y="490" width="170" height="60" style="animation-delay:1.6s">
         <div xmlns="http://www.w3.org/1999/xhtml" class="node" data-node="hq-dash"><div class="t">Dashboard</div><div class="p">viktor-board</div></div>
@@ -418,7 +418,7 @@
       <div class="omhead">3 · HQ <span>Steuerung</span></div>
       <button class="omnode" data-node="hq-hub"><span class="ont">HQ</span><span class="onp">Steuerung</span></button>
       <button class="omnode" data-node="hq-cmd"><span class="ont">Commands (12)</span><span class="onp">.claude/commands/</span></button>
-      <button class="omnode" data-node="hq-skills"><span class="ont">Skills (39)</span><span class="onp">~/.claude/skills/</span></button>
+      <button class="omnode" data-node="hq-skills"><span class="ont">Skills (49)</span><span class="onp">~/.claude/skills/</span></button>
       <button class="omnode" data-node="hq-dash"><span class="ont">Dashboard</span><span class="onp">viktor-board</span></button>
       <button class="omnode" data-node="hq-logs"><span class="ont">Logs</span><span class="onp">~/.claude/logs/</span></button>
     </div>
@@ -451,7 +451,7 @@
     <p class="big">Jeder Befehl macht <b>eine</b> Sache. Zusammen ergeben sie <span class="ghost">ein Gehirn, das mit mir mitwächst.</span></p>
     <p class="lead">Das Herz ist ein einfacher Kreislauf: Rohes rein, verarbeiten, speichern, abrufen. Drumherum liegen Rituale, die das System wachhalten, und Skills, die aus dem Wissen Content, Kunden und fertige Seiten machen.</p>
     <div class="stats">
-      <div class="stat reveal" style="--i:0"><div class="n">40+</div><div class="l">Skills und Commands</div></div>
+      <div class="stat reveal" style="--i:0"><div class="n">60+</div><div class="l">Skills und Commands</div></div>
       <div class="stat reveal" style="--i:1"><div class="n">4</div><div class="l">Schritte im Kreislauf</div></div>
       <div class="stat reveal" style="--i:2"><div class="n">1</div><div class="l">Quelle der Wahrheit</div></div>
     </div>
@@ -537,7 +537,7 @@
 
       <!-- Rituale -->
       <div class="cluster" data-cat="ritual">
-        <div class="clabel reveal"><span class="ci">Rhythmus und Reflexion</span><h3>Befehle, die das Gehirn wachhalten</h3><span class="cn">13 Befehle</span></div>
+        <div class="clabel reveal"><span class="ci">Rhythmus und Reflexion</span><h3>Befehle, die das Gehirn wachhalten</h3><span class="cn">17 Befehle</span></div>
         <div class="skillgrid">
           <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/prime</span><p>Tagesstart: zieht Ziele und Stand, ohne dass ich alles neu erklären muss.</p></div>
           <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/coach</span><p>Was soll ich heute machen? Liest Kalender, Reminders und Ziele und gibt eine klare Prio.</p></div>
@@ -550,12 +550,16 @@
           <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/briefing</span><p>Morgens: triagiert die Mails in Sofort, Heute, Später und legt Reminders an.</p></div>
           <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/wochenrückblick · /monatsrückblick · /jahresrückblick</span><p>Bilanz aus den Logs. Selbstreflexion, die nicht vor einem leeren Blatt startet.</p></div>
           <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/dashboard-sync</span><p>Hält das persönliche Dashboard mit dem aktuellen Stand synchron.</p></div>
+        <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/spiegel</span><p>Fragt dich mit deinen eigenen Mustern zurück, wenn du bei einer Entscheidung im Kreis läufst.</p></div>
+        <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/todo-liste</span><p>Macht aus einer Aufgabenliste eine HTML-Seite, die du selbst abhaken und weiterschreiben kannst.</p></div>
+        <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/session-uebergabe</span><p>Schreibt am Ende einer Arbeitssession den Stand mit, damit die nächste sofort weiterarbeitet.</p></div>
+        <div class="skillcard reveal" data-cat="ritual"><span class="cmd">/tagesfokus</span><p>Richtet sich beim ersten Aufruf selbst ein und hält dich dann durch den Tag bei einer Sache.</p></div>
         </div>
       </div>
 
       <!-- Content -->
       <div class="cluster" data-cat="content">
-        <div class="clabel reveal"><span class="ci">Content und Reichweite</span><h3>Aus Wissen werden Posts</h3><span class="cn">7 Skills</span></div>
+        <div class="clabel reveal"><span class="ci">Content und Reichweite</span><h3>Aus Wissen werden Posts</h3><span class="cn">8 Skills</span></div>
         <div class="skillgrid">
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/ideen</span><p>Vier Post-Ideen nach den vier Säulen. Das wöchentliche Planungs-Ritual.</p></div>
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/content-post</span><p>Vom Gedanken bis Ready to post. Der ganze LinkedIn-Workflow im eigenen Schreibstil.</p></div>
@@ -564,6 +568,7 @@
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/erfolgsbeschleuniger</span><p>Wöchentliche Community-Posts: Montag Action Steps, Sonntag Rückblick.</p></div>
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/mailerlite-kampagne</span><p>Setzt E-Mail-Kampagnen und ganze Sequenzen im eigenen Schreibstil auf.</p></div>
           <div class="skillcard reveal" data-cat="content"><span class="cmd">/ki-update</span><p>Schickt mehrere Rechercheure parallel los und fasst die aktuellen KI-News als Newsletter ins Postfach.</p></div>
+        <div class="skillcard reveal" data-cat="content"><span class="cmd">/reel-skripte</span><p>Baut Skripte für kurze Videos und stoppt vor der Produktion für deine Freigabe.</p></div>
         </div>
       </div>
 
@@ -581,7 +586,7 @@
 
       <!-- Material / Visuals -->
       <div class="cluster" data-cat="visual">
-        <div class="clabel reveal"><span class="ci">Material und Visuals</span><h3>Aus Wissen wird etwas Sichtbares</h3><span class="cn">11 Skills</span></div>
+        <div class="clabel reveal"><span class="ci">Material und Visuals</span><h3>Aus Wissen wird etwas Sichtbares</h3><span class="cn">14 Skills</span></div>
         <div class="skillgrid">
           <div class="skillcard reveal" data-cat="visual"><span class="cmd">/visual-ci</span><p>Karussells und Grafiken im eigenen CI, ohne Designprogramm.</p></div>
           <div class="skillcard reveal" data-cat="visual"><span class="cmd">/nano-banana-infografik</span><p>Infografiken und Schaubilder mit exakten Markenfarben.</p></div>
@@ -594,6 +599,9 @@
           <div class="skillcard reveal" data-cat="visual"><span class="cmd">/hilker-trainingstag</span><p>Bereitet ein Modul des KI-Manager-Kurses vor: Leitfaden, Folien und Aufgaben.</p></div>
           <div class="skillcard reveal" data-cat="visual"><span class="cmd">/hilker-tagesabschluss</span><p>Nachbereitung nach dem Trainingstag: Zeilen fürs Klassenbuch und ein Gruppen-Text.</p></div>
           <div class="skillcard reveal" data-cat="visual"><span class="cmd">/anschreiben-feedback</span><p>Kurzes, ehrliches Feedback zu Bewerbungs-Anschreiben als Word-Dokument.</p></div>
+        <div class="skillcard reveal" data-cat="visual"><span class="cmd">/video-reel</span><p>Schneidet aus Animation und Sprechvideo ein Hochformat-Reel, Untertitel entstehen lokal.</p></div>
+        <div class="skillcard reveal" data-cat="visual"><span class="cmd">/reel-motion</span><p>Legt die Bewegung über ein Reel: Einblendungen, Übergänge, Timing auf den Ton.</p></div>
+        <div class="skillcard reveal" data-cat="visual"><span class="cmd">/zertifikat</span><p>Erstellt Abschluss-Zertifikate für deine Kurse, ein PDF je Teilnehmer im eigenen Layout.</p></div>
         </div>
       </div>
 
@@ -611,10 +619,13 @@
 
       <!-- Admin -->
       <div class="cluster" data-cat="admin">
-        <div class="clabel reveal"><span class="ci">Sauber und rechtssicher</span><h3>Damit das Fundament stimmt</h3><span class="cn">2 Skills</span></div>
+        <div class="clabel reveal"><span class="ci">Sauber und rechtssicher</span><h3>Damit das Fundament stimmt</h3><span class="cn">5 Skills</span></div>
         <div class="skillgrid">
           <div class="skillcard reveal" data-cat="admin"><span class="cmd">/dsgvo-check</span><p>Ist dieses Tool mit Klientendaten okay? Ampel plus konkrete nächste Schritte.</p></div>
           <div class="skillcard reveal" data-cat="admin"><span class="cmd">/llc-log</span><p>Hält Kontostände und meldepflichtige Ereignisse der Firma fest.</p></div>
+        <div class="skillcard reveal" data-cat="admin"><span class="cmd">/finanz-sync</span><p>Zieht Kontoauszüge und Rechnungen ins Finanz-Cockpit und rechnet die Sparempfehlung neu.</p></div>
+        <div class="skillcard reveal" data-cat="admin"><span class="cmd">/rechnung</span><p>Erstellt eine Kundenrechnung über die LLC als HTML und druckfertiges PDF, mit fortlaufender Nummer.</p></div>
+        <div class="skillcard reveal" data-cat="admin"><span class="cmd">/setup-doktor</span><p>Prüft ein frisches Claude-Setup durch und sagt, was noch fehlt. Ändert dabei nichts.</p></div>
         </div>
       </div>
     </div>
@@ -684,7 +695,7 @@
 <section class="startsmall">
   <div class="wrap">
     <div class="reveal"><div class="kicker2">Bevor du dich überfordert fühlst</div>
-    <h2>Du brauchst nicht alle 40.</h2>
+    <h2>Du brauchst nicht alle 60.</h2>
     <p class="lead">Ich habe das über ein Jahr aufgebaut, Befehl für Befehl, immer wenn mich etwas wirklich genervt hat. Fang nicht mit allem an. Fang mit dreien an. Der Rest kommt, wenn du ihn brauchst.</p></div>
     <div class="three">
       <div class="threecard reveal" style="--i:0"><span class="cmd">/prime</span><b>Ankommen</b><p>Jede Session weiß, woran du arbeitest. Kein Neu-Erklären, kein bei null anfangen.</p></div>
@@ -726,8 +737,8 @@ const NODES={
   'brain-context':{k:'var(--brain)',t:'Kontext-Kern',p:'_system/context/',b:'about-me, company, strategy, Ziele, current-data. Wird über /prime und /coach geladen.',w:'Anfassen: wenn sich Profil, Firma oder Ziele ändern.'},
   'brain-memory':{k:'var(--brain)',t:'Memory',p:'~/.claude/…/memory/',b:'Dynamisches Gedächtnis: gelernte Patterns, Feedback, Projektkontext mit Halbwertszeit. Index ist MEMORY.md.',w:'Anfassen: via /log (anlegen) und /clean (aufräumen).'},
   'hq-hub':{k:'var(--hq)',t:'3 · HQ',p:'Steuerung',b:'Womit ich arbeite: Commands, Skills, Automatik (Scripts, Hooks wie der style-lint-Schreibwächter, Backup-Lauf), Dashboard und Logs. Alles, was etwas tut.',w:'Anfassen: wenn ein wiederkehrender Workflow entsteht.'},
-  'hq-cmd':{k:'var(--hq)',t:'Commands',p:'.claude/commands/',b:'12 Workspace-Befehle: prime, coach, dump, denkpartner, log, clean, feierabend, die drei Rückblicke, erfolgsbeschleuniger und session-auswertung.',w:'Anfassen: wenn ein Ablauf dazukommt oder sich ändert.'},
-  'hq-skills':{k:'var(--hq)',t:'Skills',p:'~/.claude/skills/',b:'39 eigene Skills von coach über crm bis landingpage. Trigger steht im Skill-Header.',w:'Anfassen: wenn ein neuer wiederkehrender Workflow entsteht.'},
+  'hq-cmd':{k:'var(--hq)',t:'Commands',p:'.claude/commands/',b:'12 Workspace-Befehle: prime, dump, denkpartner, log, clean, feierabend, die drei Rückblicke, erfolgsbeschleuniger, session-auswertung und spiegel.',w:'Anfassen: wenn ein Ablauf dazukommt oder sich ändert.'},
+  'hq-skills':{k:'var(--hq)',t:'Skills',p:'~/.claude/skills/',b:'49 eigene Skills von coach über crm bis zertifikat. Trigger steht im Skill-Header.',w:'Anfassen: wenn ein neuer wiederkehrender Workflow entsteht.'},
   'hq-dash':{k:'var(--hq)',t:'Dashboard',p:'viktor-board',b:'Diese Seite und das Kanban. Frontend public auf GitHub Pages, Daten privat.',w:'Voller Sync nur via /feierabend, einmal am Tag. current-data ist Master.'},
   'hq-logs':{k:'var(--hq)',t:'Logs',p:'~/.claude/logs/',b:'Daily, Weekly, Monthly, plus das Morgen-Briefing. Das Gedächtnis der Rückblicke.',w:'/log schreibt Daily, die Rückblicke schreiben Weekly und Monthly.'},
   'abs-hub':{k:'var(--gold)',t:'4 · Absicherung',p:'Backup · aktiv',b:'Verschlüsseltes Backup, sensible Daten strikt getrennt. Seit Juni aktiv, läuft automatisch zum Feierabend mit.',w:'Anfassen: bei Änderungen an der Backup-Mechanik.'},
