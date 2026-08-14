@@ -231,6 +231,40 @@
     transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--i,0)*60ms)}
   .reveal.in{opacity:1;transform:none}
 
+  /* Memory-Sektion */
+  .memcard{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);padding:clamp(16px,3vw,30px)}
+  .memcard svg{display:block;width:100%;height:auto}
+  .mbox{fill:var(--bg);stroke:var(--line);stroke-width:1;transition:fill .22s,stroke .22s}
+  .mnode:hover .mbox{fill:#fff;stroke:var(--coral-soft)}
+  .mbox.hi{fill:#fff;stroke:var(--coral-soft);stroke-width:1.4}
+  text.mt1{fill:var(--ink);font-size:14px;font-weight:650}
+  text.mt2{fill:var(--muted);font-size:11.5px}
+  .mflow{fill:none;stroke:var(--coral);stroke-width:1.8;opacity:.8;stroke-dasharray:920;stroke-dashoffset:920}
+  .reveal.in .mflow{stroke-dashoffset:0;transition:stroke-dashoffset 1.5s cubic-bezier(.2,.7,.2,1)}
+  .mflow.g{stroke:var(--green)}
+  .mmeter{transform-box:fill-box;transform-origin:left center;transform:scaleX(0)}
+  .reveal.in .mmeter{transform:scaleX(1);transition:transform 1.1s cubic-bezier(.2,.7,.2,1) .3s}
+
+  .memgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px;margin-top:22px}
+  .mcell{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:13px 15px}
+  .mch{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .mch span{font-size:13px;font-weight:650;color:var(--ink)}
+  .mch b{font-size:17px;color:var(--coral-d);font-variant-numeric:tabular-nums}
+  .mtrack{height:5px;background:var(--line);border-radius:3px;margin-top:9px;overflow:hidden}
+  .mtrack i{display:block;height:100%;background:var(--coral);border-radius:3px;transform:scaleX(0);transform-origin:left}
+  .reveal.in .mtrack i{transform:scaleX(1);transition:transform .9s cubic-bezier(.2,.7,.2,1) .45s}
+  .mcell p{font-size:11.5px;color:var(--muted);margin:7px 0 0;line-height:1.5}
+  .mcell.q .mch b{color:var(--green)}
+  .mcell.q .mtrack i{background:var(--green)}
+  .memnote{margin:22px 0 0;font-size:14px;color:var(--muted);line-height:1.65;
+    border-top:1px solid var(--line);padding-top:18px}
+  .memnote b{color:var(--ink)}
+  @media(max-width:760px){
+    .memcard{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .memcard svg{min-width:700px}
+  }
+
   /* mobile mindmap fallback (Liste statt winziges SVG) */
   .osmap-mobile{display:none;max-width:560px;margin:8px auto 0;padding:0 4px;text-align:left;position:relative;z-index:3}
   .ombranch{margin-bottom:16px;border-left:3px solid var(--bc,var(--line));padding-left:14px}
@@ -494,6 +528,93 @@
       <div class="chip-o" style="--a:206deg">Woche</div>
       <div class="chip-o" style="--a:257deg">Monat</div>
       <div class="chip-o" style="--a:309deg">Jahr</div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMORY -->
+<section>
+  <div class="wrap">
+    <div class="reveal"><div class="kicker2">Das Gedächtnis · Was hängen bleibt</div>
+    <h2>Es merkt sich, wie ich arbeite.</h2>
+    <p class="lead">Das Wiki hält fest, was ich weiß. Das Memory hält fest, wie ich arbeite: welche Korrektur ich schon zweimal gegeben habe, welches Werkzeug sich wie verhält, was bei welchem Kunden gilt. 297 Notizen liegen bereit. Aber nur der Index läuft bei jedem Start mit, und genau das macht ihn zum Nadelöhr.</p></div>
+
+    <div class="memcard reveal">
+      <svg viewBox="0 0 1000 432" role="img" aria-label="Kreislauf des Memory: beim Arbeiten entsteht eine Erkenntnis, log macht eine Notiz daraus, der Index laedt in jeder Session, Claude oeffnet gezielt einzelne Notizen, clean raeumt ins Archiv">
+        <defs>
+          <marker id="mar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--coral)"/></marker>
+          <marker id="marg" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--green)"/></marker>
+        </defs>
+
+        <g class="mnode">
+          <rect class="mbox" x="20" y="30" width="196" height="78" rx="12"/>
+          <text class="mt1" x="40" y="62">Beim Arbeiten</text>
+          <text class="mt2" x="40" y="82">Ich korrigiere, entscheide,</text>
+          <text class="mt2" x="40" y="97">erkläre etwas zum zweiten Mal</text>
+        </g>
+        <g class="mnode">
+          <rect class="mbox" x="252" y="30" width="150" height="78" rx="12"/>
+          <text class="mt1" x="272" y="62">/log</text>
+          <text class="mt2" x="272" y="82">sortiert in fünf</text>
+          <text class="mt2" x="272" y="97">Ebenen</text>
+        </g>
+        <g class="mnode">
+          <rect class="mbox" x="438" y="30" width="196" height="78" rx="12"/>
+          <text class="mt1" x="458" y="62">Eine Notiz</text>
+          <text class="mt2" x="458" y="82">eine Datei, ein Fakt,</text>
+          <text class="mt2" x="458" y="97">verlinkt mit verwandten</text>
+        </g>
+
+        <path class="mflow" d="M 220 69 L 244 69" marker-end="url(#mar)"/>
+        <path class="mflow" d="M 406 69 L 430 69" marker-end="url(#mar)"/>
+        <path class="mflow" d="M 536 112 L 536 144" marker-end="url(#mar)"/>
+
+        <g class="mnode">
+          <rect class="mbox hi" x="196" y="152" width="608" height="112" rx="14"/>
+          <text class="mt1" x="220" y="184" font-size="15">MEMORY.md</text>
+          <text class="mt2" x="220" y="204">Der Index. Eine Zeile je Eintrag, und das Einzige, was automatisch mitlädt.</text>
+          <rect x="220" y="218" width="560" height="9" rx="4.5" fill="var(--line)"/>
+          <rect class="mmeter" x="220" y="218" width="309" height="9" rx="4.5" fill="var(--coral)"/>
+          <text class="mt2" x="220" y="250">13,5 von 24,4 KB</text>
+          <text class="mt2" x="780" y="250" text-anchor="end" font-weight="700" fill="var(--coral-d)">55 Prozent voll</text>
+        </g>
+
+        <path class="mflow" d="M 808 212 L 852 212" marker-end="url(#mar)"/>
+        <text x="830" y="200" fill="var(--muted)" font-size="11" text-anchor="middle">/clean</text>
+
+        <g class="mnode">
+          <rect class="mbox" x="860" y="176" width="120" height="72" rx="12"/>
+          <text class="mt1" x="878" y="207">Archiv</text>
+          <text class="mt2" x="878" y="227">11 Notizen</text>
+        </g>
+
+        <path class="mflow" d="M 320 268 L 320 300" marker-end="url(#mar)"/>
+
+        <g class="mnode">
+          <rect class="mbox" x="196" y="308" width="250" height="72" rx="12"/>
+          <text class="mt1" x="216" y="339">Session startet</text>
+          <text class="mt2" x="216" y="359">der Index lädt von allein</text>
+        </g>
+        <g class="mnode">
+          <rect class="mbox" x="486" y="308" width="318" height="72" rx="12"/>
+          <text class="mt1" x="506" y="339">Claude öffnet 1 bis 3 Notizen</text>
+          <text class="mt2" x="506" y="359">gezielt, passend zur Aufgabe</text>
+        </g>
+
+        <path class="mflow" d="M 450 344 L 478 344" marker-end="url(#mar)"/>
+        <path class="mflow g" d="M 645 384 L 645 410 L 118 410 L 118 118" marker-end="url(#marg)"/>
+        <text x="360" y="426" fill="var(--muted)" font-size="11.5">Was Claude gelernt hat, kommt beim nächsten Mal von allein zurück in die Arbeit</text>
+      </svg>
+
+      <div class="memgrid">
+        <div class="mcell"><div class="mch"><span>reference</span><b>149</b></div><div class="mtrack"><i style="width:100%"></i></div><p>Werkzeuge, Plattformen, Eigenheiten. Wo etwas liegt und wie es sich verhält.</p></div>
+        <div class="mcell"><div class="mch"><span>feedback</span><b>104</b></div><div class="mtrack"><i style="width:70%"></i></div><p>Wie ich arbeiten will. Korrekturen und bestätigte Wege, jeweils mit dem Warum.</p></div>
+        <div class="mcell"><div class="mch"><span>project</span><b>38</b></div><div class="mtrack"><i style="width:26%"></i></div><p>Laufende Vorhaben und Kunden. Was die Ordner allein nicht hergeben.</p></div>
+        <div class="mcell"><div class="mch"><span>user</span><b>5</b></div><div class="mtrack"><i style="width:3%"></i></div><p>Wer ich bin. Bewusst wenige, das Meiste steht schon im Profil.</p></div>
+        <div class="mcell q"><div class="mch"><span>Archiv</span><b>11</b></div><div class="mtrack"><i style="width:7%"></i></div><p>Erledigt oder verschmolzen. Bleibt liegen, damit der Verlauf nachlesbar ist.</p></div>
+      </div>
+
+      <p class="memnote"><b>Warum der Füllstand zählt.</b> Läuft der Index über die Lesegrenze, wird er abgeschnitten und die unteren Einträge verschwinden lautlos, ohne Fehlermeldung. Deshalb ist Ausmisten keine Kosmetik. Am 14.08.2026 stand er bei 86 Prozent und ist an einem Tag auf 55 gefallen. Der Hebel waren 28 Register: eine Sammelzeile je Thema, statt einer Zeile je Notiz. Die Notizen bleiben alle liegen, nur der Weg zu ihnen wird kürzer.</p>
     </div>
   </div>
 </section>
