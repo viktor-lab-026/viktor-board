@@ -71,6 +71,8 @@
   .reflect input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#FCFAF6;margin-bottom:8px}
   .reflect input:focus{outline:none;border-color:var(--coral-soft);background:#fff}
   .refl-list{overflow:hidden;min-height:0}
+  .refl-main{overflow:hidden;min-height:0}
+  .ach-wrap.open>.refl-main{padding-bottom:8px}
   .refl-h{display:flex;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line);font-size:12.5px}
   .refl-h:last-child{border-bottom:none}
   .refl-h b{color:var(--coral);white-space:nowrap;font-size:12px}
@@ -205,12 +207,16 @@
     </div>
   </header>
 
-  <div class="section-label">Morgen-Reflexion</div>
-  <div class="reflect" id="reflect"></div>
-  <button class="section-label acc-toggle" id="reflToggle" aria-expanded="false" aria-controls="reflWrap" style="margin-top:14px">
-    <span>Frühere Einträge</span><span class="acc-count" id="reflCount">0</span><span class="acc-line"></span><span class="acc-chev" aria-hidden="true">▾</span>
+  <button class="section-label acc-toggle" id="reflMainToggle" aria-expanded="false" aria-controls="reflMainWrap">
+    <span>Morgen-Reflexion</span><span class="acc-line"></span><span class="acc-chev" aria-hidden="true">▾</span>
   </button>
-  <div class="ach-wrap" id="reflWrap"><div class="refl-list" id="reflHist"></div></div>
+  <div class="ach-wrap" id="reflMainWrap"><div class="refl-main">
+    <div class="reflect" id="reflect"></div>
+    <button class="section-label acc-toggle" id="reflToggle" aria-expanded="false" aria-controls="reflWrap" style="margin-top:14px">
+      <span>Frühere Einträge</span><span class="acc-count" id="reflCount">0</span><span class="acc-line"></span><span class="acc-chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="ach-wrap" id="reflWrap"><div class="refl-list" id="reflHist"></div></div>
+  </div></div>
 
   <div class="section-label">Termine heute</div>
   <div class="timeline"><div class="track" id="timeline"></div></div>
@@ -709,6 +715,17 @@
   }
   reflToggle.addEventListener("click",()=>setRefl(!reflWrap.classList.contains("open")));
   setRefl(localStorage.getItem(REFL_KEY)==="1");
+
+  // ---- Akkordeon „Morgen-Reflexion" (ganze Sektion, standardmäßig zu) ----
+  const REFLMAIN_KEY="vl-reflmain-open";
+  const reflMainToggle=document.getElementById("reflMainToggle"), reflMainWrap=document.getElementById("reflMainWrap");
+  function setReflMain(open){
+    reflMainWrap.classList.toggle("open",open);
+    reflMainToggle.setAttribute("aria-expanded",open?"true":"false");
+    try{localStorage.setItem(REFLMAIN_KEY,open?"1":"0");}catch(e){}
+  }
+  reflMainToggle.addEventListener("click",()=>setReflMain(!reflMainWrap.classList.contains("open")));
+  setReflMain(localStorage.getItem(REFLMAIN_KEY)==="1");
 
   render();
   loadRemote();
