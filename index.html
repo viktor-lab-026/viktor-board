@@ -162,6 +162,26 @@
   .rm-milestone .rm-month{color:var(--coral)}
   .rm-milestone .rm-items{color:var(--ink);font-weight:600}
   .rm-milestone .rm-items li::before{background:var(--coral)}
+  /* Roadmap editierbar */
+  .rm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 10px}
+  .rm-head .rm-focus{margin:0;flex:1;cursor:text;border-radius:8px;padding:4px 6px}
+  .rm-head .rm-focus:hover{background:var(--bg)}
+  .rm-add{border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .rm-add:hover{color:var(--coral);border-color:var(--coral-soft)}
+  .rm-body{position:relative}
+  .rm-acts{position:absolute;right:0;top:12px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+  .rm-row:hover .rm-acts,.rm-row:focus-within .rm-acts{opacity:1}
+  @media (hover:none){.rm-acts{opacity:1}}
+  .rm-acts button{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:8px;width:26px;height:26px;font-size:12px;cursor:pointer;line-height:1}
+  .rm-acts button:hover{color:var(--coral);border-color:var(--coral-soft)}
+  .rm-items{padding-right:96px}
+  .rm-share{margin:8px 96px 2px 0;max-width:420px}
+  .rm-share .bar{display:flex;height:8px;border-radius:6px;overflow:hidden;background:var(--bg)}
+  .rm-share .d{background:var(--coral-soft)} .rm-share .v{background:var(--green)}
+  .rm-share .lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+  .rm-share.over .d{background:var(--coral)}
+  .rm-note{font-size:12px;color:var(--muted);font-style:italic;margin-top:4px;padding-right:96px}
+  @media (max-width:640px){.rm-items,.rm-note{padding-right:0}.rm-share{margin-right:0}.rm-acts{position:static;margin-top:6px;grid-column:3}}
 
   /* Wochen-Review */
   .weekreview{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
@@ -228,7 +248,7 @@
   <div class="kanban" id="board"></div>
 
   <div class="section-label">Roadmap 2026 · wohin es geht</div>
-  <div class="rm-focus" id="rmFocus"></div>
+  <div class="rm-head"><div class="rm-focus" id="rmFocus" title="Klicken zum Bearbeiten"></div><button class="rm-add" id="rmAdd">+ Monat</button></div>
   <div class="roadmap" id="roadmap"></div>
 
   <div class="section-label">Jahresziele 2026</div>
@@ -262,6 +282,41 @@
       <button class="btn btn-primary" id="connectSave">Verbinden</button>
       <button class="btn btn-ghost" onclick="disconnect()">Trennen</button>
       <button class="btn btn-ghost" onclick="closeConnect()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Roadmap Modal -->
+<div class="modal-bg" id="rmBg">
+  <div class="modal">
+    <h3 id="rmTitle">Monat</h3>
+    <div id="rmMonthFields">
+      <div class="modal-row">
+        <div><label>Monat</label><input id="rMonth" type="text" placeholder="z.B. September"></div>
+        <div><label>Status</label>
+          <select id="rStatus">
+            <option value="planned">Geplant</option>
+            <option value="active">Läuft gerade</option>
+            <option value="done">Erledigt</option>
+            <option value="milestone">Meilenstein</option>
+          </select></div>
+      </div>
+      <label>Delivery-Anteil in % (leer = kein Balken)</label>
+      <input id="rShare" type="number" min="0" max="100" step="5" placeholder="z.B. 70">
+      <div class="help">Rest ist Vertrieb + Lernen. Ziel ab Dezember: 50.</div>
+      <label>Punkte (eine Zeile pro Punkt)</label>
+      <textarea id="rItems" style="min-height:110px" placeholder="Was in diesem Monat zählt"></textarea>
+      <label>Notiz (optional)</label>
+      <input id="rNote" type="text" placeholder="z.B. Geldphase, Umzug am 31., Las Palmas">
+    </div>
+    <div id="rmFocusFields" style="display:none">
+      <label>Roter Faden (**fett** erlaubt)</label>
+      <textarea id="rFocus" style="min-height:90px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="rSave">Speichern</button>
+      <button class="btn btn-ghost" id="rDelete" style="color:#b4432a">Löschen</button>
+      <button class="btn btn-ghost" id="rCancel">Abbrechen</button>
     </div>
   </div>
 </div>
@@ -613,12 +668,78 @@
   // ---- Roadmap ----
   function renderRoadmap(){
     const fc=document.getElementById("rmFocus");
-    if(fc) fc.innerHTML=state.roadmapFocus?esc(state.roadmapFocus).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>"):"";
-    document.getElementById("roadmap").innerHTML=(state.roadmap||[]).map(m=>{
-      const items=(m.items||[]).map(i=>'<li>'+esc(i)+'</li>').join("");
-      return '<div class="rm-row rm-'+(m.status||'planned')+'"><div class="rm-month">'+esc(m.month)+'</div><div class="rm-dot"></div><ul class="rm-items">'+items+'</ul></div>';
-    }).join("")||'<div class="empty">Noch keine Roadmap.</div>';
+    if(fc) fc.innerHTML=state.roadmapFocus?esc(state.roadmapFocus).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>"):'<span style="opacity:.6">Roter Faden eintragen …</span>';
+    if(!Array.isArray(state.roadmap)) state.roadmap=[];
+    const n=state.roadmap.length;
+    document.getElementById("roadmap").innerHTML=state.roadmap.map((m,i)=>{
+      const items=(m.items||[]).map(x=>'<li>'+esc(x)+'</li>').join("");
+      let share="";
+      if(m.share!==undefined&&m.share!==null&&m.share!==""){
+        const d=Math.max(0,Math.min(100,Number(m.share)||0)),v=100-d;
+        share='<div class="rm-share'+(d>50?' over':'')+'"><div class="bar"><div class="d" style="width:'+d+'%"></div><div class="v" style="width:'+v+'%"></div></div><div class="lbl"><span>Delivery '+d+' %</span><span>Vertrieb + Lernen '+v+' %</span></div></div>';
+      }
+      const note=m.note?'<div class="rm-note">'+esc(m.note)+'</div>':"";
+      const acts='<div class="rm-acts">'+(i>0?'<button data-rm="up" data-i="'+i+'" title="Nach oben">↑</button>':'')+(i<n-1?'<button data-rm="down" data-i="'+i+'" title="Nach unten">↓</button>':'')+'<button data-rm="edit" data-i="'+i+'" title="Bearbeiten">✎</button></div>';
+      return '<div class="rm-row rm-'+(m.status||'planned')+'"><div class="rm-month">'+esc(m.month||"")+'</div><div class="rm-dot"></div><div class="rm-body"><ul class="rm-items">'+items+'</ul>'+share+note+acts+'</div></div>';
+    }).join("")||'<div class="empty">Noch keine Roadmap. Mit „+ Monat" anfangen.</div>';
   }
+  let rmCtx=null; // {i:number|null, mode:"month"|"focus"}
+  function openRm(i){
+    rmCtx={i,mode:"month"};
+    document.getElementById("rmMonthFields").style.display="";document.getElementById("rmFocusFields").style.display="none";
+    const m=i!==null?state.roadmap[i]:null;
+    document.getElementById("rmTitle").textContent=m?"Monat bearbeiten":"Neuer Monat";
+    document.getElementById("rMonth").value=m?(m.month||""):"";
+    document.getElementById("rStatus").value=m?(m.status||"planned"):"planned";
+    document.getElementById("rShare").value=m&&m.share!==undefined&&m.share!==null?m.share:"";
+    document.getElementById("rItems").value=m?(m.items||[]).join("\n"):"";
+    document.getElementById("rNote").value=m?(m.note||""):"";
+    document.getElementById("rDelete").style.display=m?"":"none";
+    document.getElementById("rmBg").classList.add("show");document.getElementById("rMonth").focus();
+  }
+  function openRmFocus(){
+    rmCtx={i:null,mode:"focus"};
+    document.getElementById("rmMonthFields").style.display="none";document.getElementById("rmFocusFields").style.display="";
+    document.getElementById("rmTitle").textContent="Roter Faden";
+    document.getElementById("rFocus").value=state.roadmapFocus||"";
+    document.getElementById("rDelete").style.display="none";
+    document.getElementById("rmBg").classList.add("show");document.getElementById("rFocus").focus();
+  }
+  function closeRm(){document.getElementById("rmBg").classList.remove("show");rmCtx=null;}
+  function saveRm(){
+    if(!rmCtx) return;
+    if(rmCtx.mode==="focus"){state.roadmapFocus=document.getElementById("rFocus").value.trim();closeRm();renderRoadmap();queueSave();return;}
+    const month=document.getElementById("rMonth").value.trim(); if(!month){document.getElementById("rMonth").focus();return;}
+    const shareRaw=document.getElementById("rShare").value.trim();
+    const m={month,status:document.getElementById("rStatus").value,
+      items:document.getElementById("rItems").value.split("\n").map(x=>x.trim()).filter(Boolean),
+      note:document.getElementById("rNote").value.trim()};
+    if(shareRaw!=="") m.share=Math.max(0,Math.min(100,Number(shareRaw)||0));
+    if(!m.note) delete m.note;
+    if(rmCtx.i!==null){ state.roadmap[rmCtx.i]=Object.assign({},state.roadmap[rmCtx.i],m); if(shareRaw==="") delete state.roadmap[rmCtx.i].share; if(!m.note) delete state.roadmap[rmCtx.i].note; }
+    else state.roadmap.push(m);
+    closeRm(); renderRoadmap(); queueSave();
+  }
+  function deleteRm(){
+    if(!rmCtx||rmCtx.i===null) return;
+    const m=state.roadmap[rmCtx.i]; if(!confirm('„'+(m.month||"Monat")+'" wirklich löschen?')) return;
+    state.roadmap.splice(rmCtx.i,1); closeRm(); renderRoadmap(); queueSave();
+  }
+  function moveRm(i,dir){
+    const j=i+dir; if(j<0||j>=state.roadmap.length) return;
+    const t=state.roadmap[i]; state.roadmap[i]=state.roadmap[j]; state.roadmap[j]=t; renderRoadmap(); queueSave();
+  }
+  document.getElementById("roadmap").addEventListener("click",e=>{
+    const b=e.target.closest("button[data-rm]"); if(!b) return;
+    const i=Number(b.dataset.i);
+    if(b.dataset.rm==="edit") openRm(i); else if(b.dataset.rm==="up") moveRm(i,-1); else if(b.dataset.rm==="down") moveRm(i,1);
+  });
+  document.getElementById("rmAdd").addEventListener("click",()=>openRm(null));
+  document.getElementById("rmFocus").addEventListener("click",openRmFocus);
+  document.getElementById("rSave").addEventListener("click",saveRm);
+  document.getElementById("rDelete").addEventListener("click",deleteRm);
+  document.getElementById("rCancel").addEventListener("click",closeRm);
+  document.getElementById("rmBg").addEventListener("click",e=>{if(e.target.id==="rmBg") closeRm();});
 
   // ---- Wochen-Review ----
   function isoWeek(d){
