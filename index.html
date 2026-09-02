@@ -48,6 +48,14 @@
   .gmeta b{color:var(--ink)}
   .pill{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .pill.win{background:#E7EBE2;color:#5F7A52}.pill.go{background:#FBEAE2;color:var(--coral)}.pill.open{background:#F0E7DB;color:#9A7B55}
+  .ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .lstep{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:5px}
+  .lstep .ls{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .lstep .ln{font-size:15px;font-weight:700;color:var(--ink)}
+  .lstep .lp{font-size:19px;font-weight:800;color:var(--coral)}
+  .lstep .lu{font-size:12px;color:var(--muted);line-height:1.4}
+  .lstep .pill{align-self:flex-start;margin-top:6px}
+  .lstep.quiet .lp{color:var(--muted)}
 
   .ach{display:flex;flex-wrap:wrap;gap:9px}
   .ach .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;box-shadow:var(--shadow);display:inline-flex;align-items:center;gap:8px}
@@ -251,6 +259,9 @@
   <div class="rm-head"><div class="rm-focus" id="rmFocus" title="Klicken zum Bearbeiten"></div><button class="rm-add" id="rmAdd">+ Monat</button></div>
   <div class="roadmap" id="roadmap"></div>
 
+  <div class="section-label">Produkttreppe · was was kostet</div>
+  <div class="ladder" id="ladder"></div>
+
   <div class="section-label">Jahresziele 2026</div>
   <div class="goals" id="goals"></div>
 
@@ -361,7 +372,7 @@
   function b64encode(str){ return btoa(String.fromCharCode(...new TextEncoder().encode(str))); }
   function b64decode(b64){ const bin=atob(b64.replace(/\s/g,"")); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
 
-  const EMPTY = { meta:{title:"Dashboard",dateLabel:""}, reflections:[], goals:[], achievements:[], timeline:[], roadmap:[], weekReviews:[], why:"", columns:[
+  const EMPTY = { meta:{title:"Dashboard",dateLabel:""}, reflections:[], goals:[], achievements:[], timeline:[], roadmap:[], products:[], weekReviews:[], why:"", columns:[
     {id:"now",title:"Jetzt — Hebel",cards:[]},{id:"week",title:"Diese Woche",cards:[]},
     {id:"later",title:"Später / Backlog",cards:[]},{id:"done",title:"Erledigt",cards:[]} ] };
 
@@ -583,6 +594,14 @@
       '<div class="slot'+(t.free?" free":"")+'"><div class="time">'+esc(t.time)+'</div><div class="ev">'+esc(t.ev)+'</div>'+
       (t.sub?'<div class="sub">'+esc(t.sub)+'</div>':'')+'</div>').join("")
       :'<div class="slot free"><div class="ev">Keine Termine für heute</div></div>';
+
+    // Produkttreppe
+    document.getElementById("ladder").innerHTML=(state.products||[]).map(pr=>
+      '<div class="lstep'+(pr.statusClass==="open"?" quiet":"")+'"><div class="ls">'+esc(pr.step||"")+'</div>'+
+      '<div class="ln">'+esc(pr.name||"")+'</div><div class="lp">'+esc(pr.price||"")+'</div>'+
+      '<div class="lu">'+esc(pr.unit||"")+'</div>'+
+      (pr.status?'<span class="pill '+(pr.statusClass||"open")+'">'+esc(pr.status)+'</span>':'')+'</div>').join("")
+      || '<div class="gs" style="color:var(--muted)">Keine Produkte hinterlegt.</div>';
 
     // Roadmap
     renderRoadmap();
