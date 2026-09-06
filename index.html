@@ -78,6 +78,16 @@
   .reflect h4{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
   .reflect input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#FCFAF6;margin-bottom:8px}
   .reflect input:focus{outline:none;border-color:var(--coral-soft);background:#fff}
+  .reflect textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#FCFAF6;line-height:1.55;resize:vertical;min-height:58px}
+  .reflect textarea:focus{outline:none;border-color:var(--coral-soft);background:#fff}
+  .refl-part{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+  .refl-part>h3{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--coral);margin-bottom:13px}
+  .refl-part>h3 .n{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#FBEAE2;font-size:11px}
+  .refl-letter-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .refl-letter-head .target{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.45}
+  .refl-dice{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+  .refl-dice:hover{color:var(--coral);border-color:var(--coral-soft)}
+  .refl-letter textarea{min-height:140px}
   .refl-list{overflow:hidden;min-height:0}
   .refl-main{overflow:hidden;min-height:0}
   .ach-wrap.open>.refl-main{padding-bottom:8px}
@@ -147,10 +157,6 @@
   .foot button{background:var(--card);border:1px solid var(--line);color:var(--muted);font-size:12.5px;padding:8px 16px;border-radius:999px;cursor:pointer}
   .foot button:hover{color:var(--coral);border-color:var(--coral-soft)}
   .foot .hint{width:100%;text-align:center;font-size:11.5px;color:var(--muted);margin-top:6px}
-
-  /* Reflexionsfrage des Tages */
-  .reflect-q{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-  .reflect-q .rq-text{font-size:14.5px;font-weight:600;color:var(--ink);margin:2px 0 9px;line-height:1.45}
 
   /* Roadmap 2026 */
   .rm-focus{font-size:12.5px;color:var(--muted);margin:-6px 0 16px;padding:0 2px}
@@ -236,7 +242,7 @@
   </header>
 
   <button class="section-label acc-toggle" id="reflMainToggle" aria-expanded="false" aria-controls="reflMainWrap">
-    <span>Morgen-Reflexion</span><span class="acc-line"></span><span class="acc-chev" aria-hidden="true">▾</span>
+    <span>Reflexion</span><span class="acc-line"></span><span class="acc-chev" aria-hidden="true">▾</span>
   </button>
   <div class="ach-wrap" id="reflMainWrap"><div class="refl-main">
     <div class="reflect" id="reflect"></div>
@@ -467,91 +473,131 @@
     if(!t){ return; } localStorage.setItem(TOKEN_KEY,t); closeConnect(); loadRemote(true);
   });
 
-  // ---- Morgen-Reflexion ----
+  // ---- Reflexion (3 Teile: Gestern, Selbstreflexion, Timeline-Arbeit) ----
   function todayISO(){ const d=new Date(),p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+  function isoDate(d){ const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+  function deDate(d){ const p=n=>String(n).padStart(2,"0"); return p(d.getDate())+"."+p(d.getMonth()+1)+"."+d.getFullYear(); }
+
+  // Alte Einträge (gratitude/joy/learning/question/answer) bleiben liegen und werden in der
+  // Historie weiter angezeigt. Neu getippt wird nur noch nach dem Schema unten.
+  function normRefl(e){
+    if(!Array.isArray(e.gratitude)) e.gratitude=["","",""];
+    while(e.gratitude.length<3) e.gratitude.push("");
+    if(!e.yesterday||typeof e.yesterday!=="object") e.yesterday={};
+    ["milestones","world"].forEach(k=>{ if(typeof e.yesterday[k]!=="string") e.yesterday[k]=""; });
+    if(!e.self||typeof e.self!=="object") e.self={};
+    ["thoughts","insights","todos"].forEach(k=>{ if(typeof e.self[k]!=="string") e.self[k]=""; });
+    if(!e.letter||typeof e.letter!=="object") e.letter={};
+    ["dir","unit","target","targetLabel","text"].forEach(k=>{ if(typeof e.letter[k]!=="string") e.letter[k]=""; });
+    if(typeof e.letter.roll!=="number") e.letter.roll=0;
+    return e;
+  }
   function getReflection(){
     if(!Array.isArray(state.reflections)) state.reflections=[];
     let e=state.reflections.find(r=>r.date===todayISO());
-    if(!e){ e={date:todayISO(),gratitude:["","",""],joy:"",learning:"",question:"",answer:""}; state.reflections.unshift(e); }
-    if(!Array.isArray(e.gratitude)) e.gratitude=["","",""];
-    while(e.gratitude.length<3) e.gratitude.push("");
-    if(typeof e.answer!=="string") e.answer="";
-    return e;
+    if(!e){ e={date:todayISO()}; state.reflections.unshift(e); }
+    return normRefl(e);
   }
 
-  // ---- Reflexionsfrage des Tages (rotierende Bank, von Claude überschreibbar) ----
-  // Gehört zur Morgen-Reflexion: alle Fragen sind morgens beantwortbar.
-  // Blick nach vorn auf heute oder Rückblick explizit auf gestern, nie "heute Abend"-Bilanz.
-  // Sobald eine Antwort für heute existiert, bleibt die gespeicherte Frage stabil.
-  const QBANK=[
-    "Was ist heute die eine Sache, die den Tag gut macht, wenn sie fertig wird?",
-    "Worauf hast du heute richtig Bock?",
-    "Was wäre heute ein ehrliches 80-Prozent-Ergebnis statt Perfektion?",
-    "Wem könntest du heute eine kleine Freude machen?",
-    "Was lässt du heute bewusst liegen?",
-    "Wo sagt dein Bauch heute schon Ja oder Nein?",
-    "Welche Aufgabe zuerst, damit der Kopf frei wird?",
-    "Was würde den heutigen Tag leicht machen?",
-    "Welchen kleinen Schritt Richtung Kurs gehst du heute?",
-    "Wofür willst du heute Abend dankbar sein können?",
-    "Was brauchst du heute mehr, Fokus oder Pause?",
-    "Welches Gespräch willst du heute nicht aufschieben?",
-    "Was kannst du heute an die KI abgeben?",
-    "Wo willst du heute einmal bewusst langsamer machen?",
-    "Was darf heute unperfekt rausgehen?",
-    "Was war gestern der Moment, der sich richtig angefühlt hat?",
-    "Was hat dir gestern am meisten Energie gegeben?",
-    "Was hat dich gestern gestresst, und war es das wert?",
-    "Was hast du gestern gelernt, das du heute nutzen kannst?",
-    "Worauf bist du von gestern stolz, auch wenn es klein war?",
-    "Welche Sorge von gestern darfst du heute loslassen?",
-    "Wo warst du gestern zu hart mit dir selbst?",
-    "Was hat gestern besser funktioniert als gedacht?",
-    "Welcher Mensch hat dir gestern gutgetan?",
-    "Was hast du gestern aufgeschoben, das heute dran ist?",
-    "Was machst du heute anders als gestern?",
-    "Wann warst du gestern am klarsten im Kopf?",
-    "Wo hast du gestern zu schnell Ja gesagt?",
-    "Was brauchst du gerade mehr, Sicherheit oder Freiheit, und warum?",
-    "Was würde dein Ich in einem Jahr dir für heute raten?"
-  ];
-  function dayOfYear(){ const d=new Date(),s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/86400000); }
-  function dailyQuestion(){
-    if(state.dailyQuestion && state.dailyQuestionDate===todayISO()) return state.dailyQuestion;
-    const e=(state.reflections||[]).find(r=>r.date===todayISO());
-    if(e&&e.answer&&e.question) return e.question; // beantwortete Frage nicht mehr wechseln
-    return QBANK[dayOfYear()%QBANK.length];
+  // ---- Timeline-Arbeit: Ziel würfeln ----
+  // Deterministisch aus Datum + Würfel-Zähler, damit das Ziel beim Neuladen stabil bleibt.
+  // Gewürfelt wird: ein Jahr in der Vergangenheit oder ein Tag/eine Woche/ein Monat/ein Jahr voraus.
+  const LETTER_FIRST_YEAR=2008;
+  function seedFrom(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+  function rngFrom(seed){ let x=seed||1; return ()=>{ x^=x<<13; x>>>=0; x^=x>>>17; x^=x<<5; x>>>=0; return x/4294967296; }; }
+  function pickLetterTarget(rand){
+    const kinds=["past","day","week","month","year"];
+    const k=kinds[Math.floor(rand()*kinds.length)];
+    const now=new Date();
+    if(k==="past"){
+      const span=Math.max(1,now.getFullYear()-LETTER_FIRST_YEAR);
+      const yr=LETTER_FIRST_YEAR+Math.floor(rand()*span);
+      return {dir:"past",unit:"year",target:String(yr),targetLabel:"An mich im Jahr "+yr};
+    }
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    let n,txt;
+    if(k==="day"){ n=1+Math.floor(rand()*30); d.setDate(d.getDate()+n); txt=n===1?"morgen":"in "+n+" Tagen"; }
+    else if(k==="week"){ n=1+Math.floor(rand()*8); d.setDate(d.getDate()+n*7); txt=n===1?"in einer Woche":"in "+n+" Wochen"; }
+    else if(k==="month"){ n=1+Math.floor(rand()*12); d.setMonth(d.getMonth()+n); txt=n===1?"in einem Monat":"in "+n+" Monaten"; }
+    else { n=1+Math.floor(rand()*10); d.setFullYear(d.getFullYear()+n); txt=n===1?"in einem Jahr":"in "+n+" Jahren"; }
+    return {dir:"future",unit:k,target:isoDate(d),targetLabel:"An mich "+txt+", am "+deDate(d)};
   }
+  function ensureLetterTarget(e,forceNew){
+    if(!forceNew&&e.letter.targetLabel) return e.letter;
+    const prev=e.letter.targetLabel;
+    let t=null;
+    // Beim Neuwuerfeln bis zu 5 Versuche, damit nicht dasselbe Ziel noch einmal kommt.
+    for(let i=0;i<(forceNew?5:1);i++){
+      if(forceNew) e.letter.roll=(e.letter.roll||0)+1;
+      t=pickLetterTarget(rngFrom(seedFrom(e.date+"#"+e.letter.roll)));
+      if(!forceNew||t.targetLabel!==prev) break;
+    }
+    e.letter.dir=t.dir; e.letter.unit=t.unit; e.letter.target=t.target; e.letter.targetLabel=t.targetLabel;
+    return e.letter;
+  }
+
   function escAttr(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  function ta(key,ph,val,max){ return '<textarea data-ref="'+key+'" maxlength="'+(max||1200)+'" placeholder="'+escAttr(ph)+'">'+esc(val)+'</textarea>'; }
   function renderReflection(){
-    const e=getReflection();
-    const q=dailyQuestion(); e.question=q;
+    const e=getReflection(), L=ensureLetterTarget(e,false);
     const g=i=>'<input data-ref="g'+i+'" type="text" maxlength="240" placeholder="'+(i+1)+'. …" value="'+escAttr(e.gratitude[i])+'">';
     document.getElementById("reflect").innerHTML=
-      '<div class="reflect-grid"><div><h4>🙏 Drei Dinge, für die ich dankbar bin</h4>'+g(0)+g(1)+g(2)+'</div>'+
-      '<div><h4>✨ Worauf ich mich heute freue</h4><input data-ref="joy" type="text" maxlength="240" placeholder="Eine Sache …" value="'+escAttr(e.joy)+'">'+
-      '<h4 style="margin-top:12px">💡 Was ich gestern gelernt habe</h4><input data-ref="learning" type="text" maxlength="240" placeholder="Ein Learning …" value="'+escAttr(e.learning)+'"></div></div>'+
-      '<div class="reflect-q"><h4>🤔 Reflexionsfrage des Tages</h4><p class="rq-text">'+esc(q)+'</p>'+
-      '<input data-ref="answer" type="text" maxlength="300" placeholder="Deine Antwort … (optional)" value="'+escAttr(e.answer)+'"></div>';
+      '<div><h4>🙏 Drei Dinge, für die ich dankbar bin</h4>'+g(0)+g(1)+g(2)+'</div>'+
+      '<div class="refl-part"><h3><span class="n">1</span>Gestern</h3><div class="reflect-grid">'+
+        '<div><h4>🏁 Meilensteine</h4>'+ta("y-milestones","Was gestern wirklich passiert ist …",e.yesterday.milestones)+'</div>'+
+        '<div><h4>🌍 Was in der Welt passiert ist</h4>'+ta("y-world","Was hängen geblieben ist …",e.yesterday.world)+'</div>'+
+      '</div></div>'+
+      '<div class="refl-part"><h3><span class="n">2</span>Selbstreflexion</h3><div class="reflect-grid">'+
+        '<div><h4>🧠 Meine Gedanken</h4>'+ta("s-thoughts","Was mich gerade beschäftigt …",e.self.thoughts)+'</div>'+
+        '<div><h4>💡 Erkenntnisse</h4>'+ta("s-insights","Was ich verstanden habe …",e.self.insights)+'</div>'+
+      '</div><h4 style="margin-top:14px">✅ To-Dos zur Vorbereitung</h4>'+ta("s-todos","Eine Zeile pro To-Do …",e.self.todos)+'</div>'+
+      '<div class="refl-part refl-letter"><h3><span class="n">3</span>Timeline-Arbeit</h3>'+
+        '<div class="refl-letter-head"><span class="target">✉️ '+esc(L.targetLabel)+'</span>'+
+        '<button type="button" class="refl-dice" id="reflDice">🎲 Neu würfeln</button></div>'+
+        ta("l-text","Schreib deinem Ich von damals oder von morgen …",e.letter.text,4000)+'</div>';
     document.querySelectorAll('#reflect [data-ref]').forEach(inp=>{
       inp.addEventListener("input",()=>{
         const r=getReflection(),k=inp.dataset.ref;
-        if(k==="joy") r.joy=inp.value; else if(k==="learning") r.learning=inp.value;
-        else if(k==="answer"){ r.answer=inp.value; r.question=dailyQuestion(); }
+        if(k==="y-milestones") r.yesterday.milestones=inp.value;
+        else if(k==="y-world") r.yesterday.world=inp.value;
+        else if(k==="s-thoughts") r.self.thoughts=inp.value;
+        else if(k==="s-insights") r.self.insights=inp.value;
+        else if(k==="s-todos") r.self.todos=inp.value;
+        else if(k==="l-text"){ r.letter.text=inp.value; ensureLetterTarget(r,false); }
         else r.gratitude[+k[1]]=inp.value;
         state.reflections=state.reflections.slice(0,30);
         queueSave();
       });
     });
+    const dice=document.getElementById("reflDice");
+    if(dice) dice.addEventListener("click",()=>{
+      const r=getReflection();
+      if(r.letter.text.trim()&&!confirm("Der Brief für heute ist schon angefangen. Trotzdem ein neues Ziel würfeln?")) return;
+      ensureLetterTarget(r,true); queueSave(); renderReflection();
+    });
     renderReflHistory();
   }
+  function flatTxt(s){ return (s||"").split(/\n+/).map(x=>x.trim()).filter(Boolean).join(" · "); }
+  function cutTxt(s,n){ return s.length>n?s.slice(0,n-1)+"…":s; }
+  function reflHasContent(r){
+    const y=r.yesterday||{},s=r.self||{},l=r.letter||{};
+    return (r.gratitude||[]).some(x=>x&&x.trim())||r.joy||r.learning||r.answer||
+      y.milestones||y.world||s.thoughts||s.insights||s.todos||l.text;
+  }
   function renderReflHistory(){
-    const past=(state.reflections||[]).filter(r=>r.date!==todayISO()&&((r.gratitude||[]).some(x=>x&&x.trim())||r.joy||r.learning||r.answer)).slice(0,7);
+    const past=(state.reflections||[]).filter(r=>r.date!==todayISO()&&reflHasContent(r)).slice(0,7);
     document.getElementById("reflHist").innerHTML=past.map(r=>{
       const d=new Date(r.date+"T12:00:00");
       const lbl=isNaN(d)?esc(r.date):d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
       const parts=[]; const gs=(r.gratitude||[]).filter(x=>x&&x.trim());
+      const y=r.yesterday||{},s=r.self||{},l=r.letter||{};
       if(gs.length) parts.push("🙏 "+gs.map(esc).join(" · "));
+      if(y.milestones) parts.push("🏁 "+esc(cutTxt(flatTxt(y.milestones),200)));
+      if(y.world) parts.push("🌍 "+esc(cutTxt(flatTxt(y.world),200)));
+      if(s.thoughts) parts.push("🧠 "+esc(cutTxt(flatTxt(s.thoughts),200)));
+      if(s.insights) parts.push("💡 "+esc(cutTxt(flatTxt(s.insights),200)));
+      if(s.todos) parts.push("✅ "+esc(cutTxt(flatTxt(s.todos),200)));
+      if(l.text) parts.push("✉️ "+(l.targetLabel?"<i>"+esc(l.targetLabel)+"</i> ":"")+esc(cutTxt(flatTxt(l.text),180)));
       if(r.joy) parts.push("✨ "+esc(r.joy));
       if(r.learning) parts.push("💡 "+esc(r.learning));
       if(r.answer) parts.push("🤔 "+(r.question?"<i>"+esc(r.question)+"</i> ":"")+esc(r.answer));
@@ -856,7 +902,7 @@
   reflToggle.addEventListener("click",()=>setRefl(!reflWrap.classList.contains("open")));
   setRefl(localStorage.getItem(REFL_KEY)==="1");
 
-  // ---- Akkordeon „Morgen-Reflexion" (ganze Sektion, standardmäßig zu) ----
+  // ---- Akkordeon „Reflexion" (ganze Sektion, standardmäßig zu) ----
   const REFLMAIN_KEY="vl-reflmain-open";
   const reflMainToggle=document.getElementById("reflMainToggle"), reflMainWrap=document.getElementById("reflMainWrap");
   function setReflMain(open){
