@@ -649,7 +649,9 @@
   // auch wenn das Dashboard erst Tage später aufgeht. Verschwunden ist er erst, wenn
   // Viktor ihn aktiv wegklickt, das steht dann in letter.dismissed. Bis dahin lässt
   // auch das nächtliche Aufräumen den Text im board.json stehen.
-  let lbOffen=false, lbGezeigt=false;
+  // Gemerkt wird der TAG, an dem zuletzt aufgemacht wurde, nicht ein blosses Ja.
+  // Ein Tab, der auf dem iPhone tagelang im Speicher liegt, zeigt sonst nie wieder einen Brief.
+  let lbOffen=false, lbGezeigtAm="";
   function briefOffen(r){
     const l=r&&r.letter;
     return !!(l&&l.dir==="future"&&/^\d{4}-\d{2}-\d{2}$/.test(l.target||"")&&
@@ -685,10 +687,10 @@
     openLetterbox();
   }
   function maybeOpenLetterbox(){
-    if(lbOffen||lbGezeigt) return;
+    if(lbOffen||lbGezeigtAm===todayISO()) return;
     if(document.querySelector('#reflect [data-ref]:focus')||document.querySelector('#weekreview [data-wr]:focus')) return;
     if(!faelligeBriefe().length) return;
-    lbGezeigt=true; renderLetterbox();
+    lbGezeigtAm=todayISO(); renderLetterbox();
   }
   document.getElementById("lbDone").addEventListener("click",()=>{
     const offen=faelligeBriefe(); if(!offen.length){ closeLetterbox(); return; }
@@ -920,12 +922,13 @@
     return null;
   }
   function weekKey(){ return reviewWeek()||isoWeek(new Date()); }
-  function getWeekReview(){
+  function getWeekReviewFor(wk){
     if(!Array.isArray(state.weekReviews)) state.weekReviews=[];
-    let e=state.weekReviews.find(w=>w.week===weekKey());
-    if(!e){ e={week:weekKey(),overall:"",good:"",energy:"",learned:""}; state.weekReviews.unshift(e); }
+    let e=state.weekReviews.find(w=>w.week===wk);
+    if(!e){ e={week:wk,overall:"",good:"",energy:"",learned:""}; state.weekReviews.unshift(e); }
     return e;
   }
+  function getWeekReview(){ return getWeekReviewFor(weekKey()); }
   function weekHistory(){
     const past=(state.weekReviews||[]).filter(w=>w.week!==weekKey()&&(w.good||w.energy||w.learned||w.overall)).slice(0,4);
     if(!past.length) return "";
@@ -941,8 +944,8 @@
   function renderWeekReview(){
     const host=document.getElementById("weekreview"); if(!host) return;
     if(document.querySelector('#weekreview [data-wr]:focus')) return; // nicht neu rendern während Viktor tippt
-    const offen=!!reviewWeek();
-    const istMontag=offen&&new Date().getDay()===1;
+    const offen=reviewWeek(); // Wochenschluessel solange das Fenster offen ist, sonst null
+    const istMontag=!!offen&&new Date().getDay()===1;
     const fields=[
       ["overall","🌥️ Wie war die Woche?","In zwei, drei Sätzen …"],
       ["good","🌱 Was hat mir gutgetan?","Menschen, Momente, Erfolge …"],
@@ -950,14 +953,17 @@
       ["learned","💡 Was habe ich gelernt?","Ein Learning für nächste Woche …"]
     ];
     if(offen){
-      const e=getWeekReview();
+      // Der Wochenschluessel wird beim Rendern festgehalten, nicht bei jedem Tastendruck neu
+      // aus der Uhr geholt. Sonst kippt ein Text, den Viktor um 18:05 weiterschreibt, in die
+      // frisch begonnene Woche, waehrend das Formular noch die alte anzeigt.
+      const wk=offen, e=getWeekReviewFor(wk);
       const ta=(k,h,p)=>'<div class="wr-field"><h4>'+h+'</h4><textarea data-wr="'+k+'" maxlength="600" placeholder="'+p+'">'+esc(e[k]||"")+'</textarea></div>';
       const hinweis=istMontag?"Nachtrag zur vergangenen Woche. Bis 18:00 kannst du hier noch schreiben."
                              :"Nimm dir fünf Minuten und schau zurück.";
       host.innerHTML='<div class="wr-meta">Kalenderwoche '+esc((e.week||"").replace(/^.*-W/,""))+'. '+hinweis+'</div>'+
         '<div class="wr-grid">'+fields.map(f=>ta(f[0],f[1],f[2])).join("")+'</div>'+weekHistory();
       host.querySelectorAll('[data-wr]').forEach(t=>{
-        t.addEventListener("input",()=>{ const r=getWeekReview(); r[t.dataset.wr]=t.value; state.weekReviews=state.weekReviews.slice(0,12); queueSave(); });
+        t.addEventListener("input",()=>{ const r=getWeekReviewFor(wk); r[t.dataset.wr]=t.value; state.weekReviews=state.weekReviews.slice(0,12); queueSave(); });
       });
     } else {
       host.innerHTML='<div class="wr-locked">Der Wochen-Review wartet aufs Wochenende. Von <b>Freitag bis Montagnachmittag</b> schaust du hier zurück: was gut war, was Energie gezogen hat, was du gelernt hast.</div>'+weekHistory();
@@ -986,7 +992,12 @@
   document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeEditor();});
   document.getElementById("connectBg").addEventListener("click",e=>{if(e.target.id==="connectBg")closeConnect();});
   // Escape schliesst den Brief nur fuer diesen Blick. Weg ist er erst ueber „Gelesen, wegräumen".
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeEditor();closeConnect();closeLetterbox();}});
+  // Liegt der Brief oben, schliesst Escape nur ihn, sonst ginge ein offener Kartenentwurf mit weg.
+  document.addEventListener("keydown",e=>{
+    if(e.key!=="Escape") return;
+    if(lbOffen){ closeLetterbox(); return; }
+    closeEditor(); closeConnect();
+  });
 
   // ---- Akkordeon „Schon erreicht" (Standard: zugeklappt, Zustand gemerkt) ----
   const ACC_KEY="vl-ach-open";
