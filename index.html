@@ -153,6 +153,15 @@
   .btn-ghost{background:var(--bg);color:var(--muted)}.btn-ghost:hover{color:var(--ink)}
   .modal a{color:var(--coral)}
 
+  /* Brief-Zustellung: taucht am Zieltag auf und bleibt, bis er weggeklickt wird */
+  .modal-letter{max-width:560px}
+  .lb-kicker{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--coral);margin-bottom:8px}
+  .lb-meta{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  .lb-body{background:#FCFAF6;border:1px solid var(--line);border-radius:12px;padding:16px 18px;max-height:46vh;overflow-y:auto;
+           font-size:15px;line-height:1.65;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+  .lb-rest{font-size:12px;color:var(--muted);margin-top:12px}
+  .modal-letter .modal-actions{flex-wrap:wrap}
+
   .foot{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
   .foot button{background:var(--card);border:1px solid var(--line);color:var(--muted);font-size:12.5px;padding:8px 16px;border-radius:999px;cursor:pointer}
   .foot button:hover{color:var(--coral);border-color:var(--coral-soft)}
@@ -363,6 +372,21 @@
   </div>
 </div>
 
+<!-- Brief-Zustellung: ein Brief an dich von damals, der heute fällig ist -->
+<div class="modal-bg" id="lbBg">
+  <div class="modal modal-letter">
+    <div class="lb-kicker">✉️ Post von dir</div>
+    <h3 id="lbTitle">Ein Brief für heute</h3>
+    <div class="lb-meta" id="lbMeta"></div>
+    <div class="lb-body" id="lbBody"></div>
+    <div class="lb-rest" id="lbRest"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="lbDone">Gelesen, wegräumen</button>
+      <button class="btn btn-ghost" id="lbLater">Später nochmal zeigen</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ---- GitHub-Anbindung ----
   const GH = { owner:"viktor-lab-026", repo:"viktor-board-data", path:"board.json", branch:"main" };
@@ -489,7 +513,9 @@
     if(!e.self||typeof e.self!=="object") e.self={};
     ["thoughts","insights","todos"].forEach(k=>{ if(typeof e.self[k]!=="string") e.self[k]=""; });
     if(!e.letter||typeof e.letter!=="object") e.letter={};
-    ["dir","unit","target","targetLabel","text"].forEach(k=>{ if(typeof e.letter[k]!=="string") e.letter[k]=""; });
+    // `dismissed` haelt fest, wann ein zugestellter Brief aktiv weggeklickt wurde.
+    // Solange das leer ist, taucht er am Zieltag und an jedem Tag danach wieder auf.
+    ["dir","unit","target","targetLabel","text","dismissed"].forEach(k=>{ if(typeof e.letter[k]!=="string") e.letter[k]=""; });
     if(typeof e.letter.roll!=="number") e.letter.roll=0;
     return e;
   }
@@ -576,7 +602,7 @@
         else if(k==="s-todos") r.self.todos=inp.value;
         else if(k==="l-text"){ r.letter.text=inp.value; ensureLetterTarget(r,false); }
         else r.gratitude[+k[1]]=inp.value;
-        state.reflections=state.reflections.slice(0,30);
+        trimReflections();
         queueSave();
       });
     });
@@ -617,6 +643,60 @@
     }).join("")||'<div class="empty">Noch keine früheren Einträge.</div>';
     document.getElementById("reflCount").textContent=past.length;
   }
+
+  // ---- Brief-Zustellung ----
+  // Ein Brief an das Ich von morgen wird an seinem Zieltag fällig und bleibt fällig,
+  // auch wenn das Dashboard erst Tage später aufgeht. Verschwunden ist er erst, wenn
+  // Viktor ihn aktiv wegklickt, das steht dann in letter.dismissed. Bis dahin lässt
+  // auch das nächtliche Aufräumen den Text im board.json stehen.
+  let lbOffen=false, lbGezeigt=false;
+  function briefOffen(r){
+    const l=r&&r.letter;
+    return !!(l&&l.dir==="future"&&/^\d{4}-\d{2}-\d{2}$/.test(l.target||"")&&
+              (l.text||"").trim()&&!(l.dismissed||"").trim());
+  }
+  // Der Verlauf wird auf 30 Tage gekappt. Ein Tag mit einem noch nicht zugestellten
+  // Brief bleibt trotzdem stehen, sonst faellt ein Brief mit fernem Zieltag vorher raus.
+  function trimReflections(){
+    const alle=state.reflections||[];
+    state.reflections=alle.filter((r,i)=>i<30||briefOffen(r));
+  }
+  function faelligeBriefe(){
+    const heute=todayISO();
+    return (state.reflections||[]).filter(r=>briefOffen(r)&&r.letter.target<=heute)
+      .sort((a,b)=>a.letter.target<b.letter.target?-1:a.letter.target>b.letter.target?1:0);
+  }
+  function openLetterbox(){ lbOffen=true; document.getElementById("lbBg").classList.add("show"); }
+  function closeLetterbox(){ lbOffen=false; document.getElementById("lbBg").classList.remove("show"); }
+  function renderLetterbox(){
+    const offen=faelligeBriefe();
+    if(!offen.length){ closeLetterbox(); return; }
+    const r=offen[0], l=r.letter, heute=todayISO();
+    const g=new Date(r.date+"T12:00:00");
+    const glbl=isNaN(g)?r.date:g.toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"});
+    const z=new Date(l.target+"T12:00:00");
+    const faellig=l.target===heute?"Heute ist der Tag, für den du ihn geschrieben hast."
+                                  :"Fällig war er am "+(isNaN(z)?l.target:deDate(z))+".";
+    document.getElementById("lbTitle").textContent=l.targetLabel||"Ein Brief für heute";
+    document.getElementById("lbMeta").textContent="Geschrieben am "+glbl+". "+faellig;
+    document.getElementById("lbBody").textContent=l.text;
+    document.getElementById("lbRest").textContent=offen.length>1
+      ? (offen.length-1===1?"Ein weiterer Brief wartet noch.":(offen.length-1)+" weitere Briefe warten noch.") : "";
+    openLetterbox();
+  }
+  function maybeOpenLetterbox(){
+    if(lbOffen||lbGezeigt) return;
+    if(document.querySelector('#reflect [data-ref]:focus')||document.querySelector('#weekreview [data-wr]:focus')) return;
+    if(!faelligeBriefe().length) return;
+    lbGezeigt=true; renderLetterbox();
+  }
+  document.getElementById("lbDone").addEventListener("click",()=>{
+    const offen=faelligeBriefe(); if(!offen.length){ closeLetterbox(); return; }
+    offen[0].letter.dismissed=todayISO();
+    queueSave(); renderLetterbox();
+  });
+  document.getElementById("lbLater").addEventListener("click",closeLetterbox);
+  document.getElementById("lbBg").addEventListener("click",e=>{ if(e.target.id==="lbBg") closeLetterbox(); });
 
   // ---- Render ----
   function esc(s){ return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
@@ -682,6 +762,7 @@
     });
     renderWeekReview();
     updateProgress();
+    maybeOpenLetterbox();
   }
 
   function cardEl(card,colId){
@@ -826,7 +907,19 @@
     const wk=Math.ceil((((t-ys)/86400000)+1)/7);
     return t.getUTCFullYear()+"-W"+String(wk).padStart(2,"0");
   }
-  function weekKey(){ return isoWeek(new Date()); }
+  // Das Review-Fenster geht von Freitag bis Montagnachmittag. Am Montag gilt der
+  // Review noch der abgelaufenen Woche, deshalb wird der Schluessel dort um drei
+  // Tage zurueckgedreht. Sonst landet der Nachtrag in der frisch begonnenen Woche.
+  const REVIEW_MO_ENDE=18; // Montag offen bis 18:00
+  function reviewWeek(){
+    const now=new Date(), day=now.getDay(); // 0=So, 1=Mo, 5=Fr, 6=Sa
+    if(day===5||day===6||day===0) return isoWeek(now);
+    if(day===1&&now.getHours()<REVIEW_MO_ENDE){
+      const d=new Date(now); d.setDate(d.getDate()-3); return isoWeek(d);
+    }
+    return null;
+  }
+  function weekKey(){ return reviewWeek()||isoWeek(new Date()); }
   function getWeekReview(){
     if(!Array.isArray(state.weekReviews)) state.weekReviews=[];
     let e=state.weekReviews.find(w=>w.week===weekKey());
@@ -848,24 +941,26 @@
   function renderWeekReview(){
     const host=document.getElementById("weekreview"); if(!host) return;
     if(document.querySelector('#weekreview [data-wr]:focus')) return; // nicht neu rendern während Viktor tippt
-    const day=new Date().getDay(); // 0=So, 5=Fr, 6=Sa
-    const isWeekend=(day===5||day===6||day===0);
+    const offen=!!reviewWeek();
+    const istMontag=offen&&new Date().getDay()===1;
     const fields=[
       ["overall","🌥️ Wie war die Woche?","In zwei, drei Sätzen …"],
       ["good","🌱 Was hat mir gutgetan?","Menschen, Momente, Erfolge …"],
       ["energy","🔋 Was hat Energie gezogen?","Was war zäh oder hat gestresst?"],
       ["learned","💡 Was habe ich gelernt?","Ein Learning für nächste Woche …"]
     ];
-    if(isWeekend){
+    if(offen){
       const e=getWeekReview();
       const ta=(k,h,p)=>'<div class="wr-field"><h4>'+h+'</h4><textarea data-wr="'+k+'" maxlength="600" placeholder="'+p+'">'+esc(e[k]||"")+'</textarea></div>';
-      host.innerHTML='<div class="wr-meta">Kalenderwoche '+esc((e.week||"").replace(/^.*-W/,""))+'. Nimm dir fünf Minuten und schau zurück.</div>'+
+      const hinweis=istMontag?"Nachtrag zur vergangenen Woche. Bis 18:00 kannst du hier noch schreiben."
+                             :"Nimm dir fünf Minuten und schau zurück.";
+      host.innerHTML='<div class="wr-meta">Kalenderwoche '+esc((e.week||"").replace(/^.*-W/,""))+'. '+hinweis+'</div>'+
         '<div class="wr-grid">'+fields.map(f=>ta(f[0],f[1],f[2])).join("")+'</div>'+weekHistory();
       host.querySelectorAll('[data-wr]').forEach(t=>{
         t.addEventListener("input",()=>{ const r=getWeekReview(); r[t.dataset.wr]=t.value; state.weekReviews=state.weekReviews.slice(0,12); queueSave(); });
       });
     } else {
-      host.innerHTML='<div class="wr-locked">Der Wochen-Review wartet aufs Wochenende. Von <b>Freitag bis Sonntag</b> schaust du hier zurück: was gut war, was Energie gezogen hat, was du gelernt hast.</div>'+weekHistory();
+      host.innerHTML='<div class="wr-locked">Der Wochen-Review wartet aufs Wochenende. Von <b>Freitag bis Montagnachmittag</b> schaust du hier zurück: was gut war, was Energie gezogen hat, was du gelernt hast.</div>'+weekHistory();
     }
   }
 
@@ -890,7 +985,8 @@
   document.getElementById("fCancel").addEventListener("click",closeEditor);
   document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeEditor();});
   document.getElementById("connectBg").addEventListener("click",e=>{if(e.target.id==="connectBg")closeConnect();});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeEditor();closeConnect();}});
+  // Escape schliesst den Brief nur fuer diesen Blick. Weg ist er erst ueber „Gelesen, wegräumen".
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeEditor();closeConnect();closeLetterbox();}});
 
   // ---- Akkordeon „Schon erreicht" (Standard: zugeklappt, Zustand gemerkt) ----
   const ACC_KEY="vl-ach-open";
