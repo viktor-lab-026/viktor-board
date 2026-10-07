@@ -826,11 +826,42 @@
   }
 
   // ---- Roadmap ----
+  // Der Status fuer die Anzeige kommt aus dem Datum: vergangene Monate "done", der laufende
+  // "active", spaetere bleiben "planned" oder "milestone". So schaltet die Roadmap am
+  // Monatsersten selbst um. Gleiche Rechnung wie in Obsidian (agentic-os-roadmap-card.js).
+  // Monate ohne Jahr erben es vom Vorgaenger. Ist ein Name nicht lesbar oder traegt kein
+  // Monat ein Jahr, gilt der gespeicherte Status. Gespeichert wird davon nichts.
+  const RM_MONATE=["jan","feb","mär","apr","mai","jun","jul","aug","sep","okt","nov","dez"];
+  function rmReadMonth(text){
+    const m=/^\s*([a-zäöü]{3})[a-zäöü]*\.?\s*(\d{4})?\s*$/.exec(String(text==null?"":text).toLowerCase());
+    if(!m) return null;
+    const nr=RM_MONATE.indexOf(m[1]==="mae"||m[1]==="mar"?"mär":m[1]);
+    return nr<0?null:{monat:nr,jahr:m[2]?Number(m[2]):null};
+  }
+  function rmStatusByDate(list,now){
+    const fallback=list.map(m=>m.status||"planned");
+    const read=list.map(m=>rmReadMonth(m&&m.month));
+    const first=read.findIndex(g=>g&&g.jahr!==null);
+    if(read.some(g=>!g)||first<0) return fallback;
+    const run=[]; run[first]=read[first].jahr*12+read[first].monat;
+    for(let k=first+1;k<read.length;k++){
+      if(read[k].jahr!==null){ run[k]=read[k].jahr*12+read[k].monat; continue; }
+      let y=Math.floor(run[k-1]/12); if(read[k].monat<=run[k-1]%12) y++;
+      run[k]=y*12+read[k].monat;
+    }
+    for(let k=first-1;k>=0;k--){
+      let y=Math.floor(run[k+1]/12); if(read[k].monat>=run[k+1]%12) y--;
+      run[k]=y*12+read[k].monat;
+    }
+    const today=now.getFullYear()*12+now.getMonth();
+    return list.map((m,i)=>run[i]<today?"done":run[i]===today?"active":(m.status==="milestone"?"milestone":"planned"));
+  }
   function renderRoadmap(){
     const fc=document.getElementById("rmFocus");
     if(fc) fc.innerHTML=state.roadmapFocus?esc(state.roadmapFocus).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>"):'<span style="opacity:.6">Roter Faden eintragen …</span>';
     if(!Array.isArray(state.roadmap)) state.roadmap=[];
     const n=state.roadmap.length;
+    const stat=rmStatusByDate(state.roadmap,new Date());
     document.getElementById("roadmap").innerHTML=state.roadmap.map((m,i)=>{
       const items=(m.items||[]).map(x=>'<li>'+esc(x)+'</li>').join("");
       let share="";
@@ -840,7 +871,7 @@
       }
       const note=m.note?'<div class="rm-note">'+esc(m.note)+'</div>':"";
       const acts='<div class="rm-acts">'+(i>0?'<button data-rm="up" data-i="'+i+'" title="Nach oben">↑</button>':'')+(i<n-1?'<button data-rm="down" data-i="'+i+'" title="Nach unten">↓</button>':'')+'<button data-rm="edit" data-i="'+i+'" title="Bearbeiten">✎</button></div>';
-      return '<div class="rm-row rm-'+(m.status||'planned')+'"><div class="rm-month">'+esc(m.month||"")+'</div><div class="rm-dot"></div><div class="rm-body"><ul class="rm-items">'+items+'</ul>'+share+note+acts+'</div></div>';
+      return '<div class="rm-row rm-'+stat[i]+'"><div class="rm-month">'+esc(m.month||"")+'</div><div class="rm-dot"></div><div class="rm-body"><ul class="rm-items">'+items+'</ul>'+share+note+acts+'</div></div>';
     }).join("")||'<div class="empty">Noch keine Roadmap. Mit „+ Monat" anfangen.</div>';
   }
   let rmCtx=null; // {i:number|null, mode:"month"|"focus"}
