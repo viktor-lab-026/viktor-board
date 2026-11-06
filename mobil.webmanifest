@@ -1,0 +1,13 @@
+{
+  "name": "Viktor Board unterwegs",
+  "short_name": "Unterwegs",
+  "description": "Das Wichtigste vom Board fürs Handy",
+  "start_url": "./mobil.html",
+  "display": "standalone",
+  "background_color": "#F4EEE6",
+  "theme_color": "#F4EEE6",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

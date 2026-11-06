@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Unterwegs">
+<meta name="theme-color" content="#F4EEE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1B1714" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="mobil.webmanifest">
+<title>Unterwegs</title>
+<style>
+  :root{
+    --bg:#F4EEE6; --ink:#1E1E1D; --ink-2:#5E5852; --ink-3:#8C847C;
+    --coral:#D96548; --coral-soft:rgba(217,101,72,.14);
+    --glass:rgba(255,255,255,.46); --glass-strong:rgba(255,255,255,.66);
+    --edge:rgba(255,255,255,.75); --edge-low:rgba(30,30,29,.06);
+    --shine:rgba(255,255,255,.9); --shadow:0 10px 30px rgba(80,50,30,.10), 0 1px 2px rgba(80,50,30,.06);
+    --blob1:#F2B8A2; --blob2:#E9D7BF; --blob3:#F7CDB8;
+    --ok:#5C8A6B;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1B1714; --ink:#F4EEE6; --ink-2:#C2B8AE; --ink-3:#8E847A;
+      --coral:#E77A5E; --coral-soft:rgba(231,122,94,.18);
+      --glass:rgba(255,255,255,.07); --glass-strong:rgba(255,255,255,.12);
+      --edge:rgba(255,255,255,.16); --edge-low:rgba(0,0,0,.3);
+      --shine:rgba(255,255,255,.22); --shadow:0 10px 30px rgba(0,0,0,.35);
+      --blob1:#6B2E20; --blob2:#3A2C22; --blob3:#5A2A1E;
+      --ok:#8DBB9A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1B1714; --ink:#F4EEE6; --ink-2:#C2B8AE; --ink-3:#8E847A;
+    --coral:#E77A5E; --coral-soft:rgba(231,122,94,.18);
+    --glass:rgba(255,255,255,.07); --glass-strong:rgba(255,255,255,.12);
+    --edge:rgba(255,255,255,.16); --edge-low:rgba(0,0,0,.3);
+    --shine:rgba(255,255,255,.22); --shadow:0 10px 30px rgba(0,0,0,.35);
+    --blob1:#6B2E20; --blob2:#3A2C22; --blob3:#5A2A1E; --ok:#8DBB9A;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100dvh; overflow-x:hidden;
+  }
+  /* Hintergrund: weiche Farbflächen, damit das Glas etwas zum Brechen hat */
+  .scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .scene i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.85}
+  .scene i:nth-child(1){width:70vw;height:70vw;background:var(--blob1);top:-18vw;right:-22vw}
+  .scene i:nth-child(2){width:80vw;height:80vw;background:var(--blob2);top:45vh;left:-35vw}
+  .scene i:nth-child(3){width:55vw;height:55vw;background:var(--blob3);bottom:-15vw;right:-10vw;opacity:.6}
+
+  main{position:relative;z-index:1;max-width:520px;margin:0 auto;
+    padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 110px)}
+
+  .glass{
+    position:relative; background:var(--glass);
+    -webkit-backdrop-filter:blur(28px) saturate(170%); backdrop-filter:blur(28px) saturate(170%);
+    border:1px solid var(--edge); border-radius:26px; box-shadow:var(--shadow), inset 0 1px 0 var(--shine);
+  }
+  .glass::after{ /* Lichtkante oben, wie bei Liquid Glass */
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(160deg,var(--shine) 0%,transparent 28%,transparent 72%,rgba(255,255,255,.08) 100%);
+    opacity:.35;
+  }
+
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:4px 4px 18px}
+  .date{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  h1{font-size:30px;line-height:1.1;margin:4px 0 0;font-weight:700;letter-spacing:-.02em}
+  .sync{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;font-size:12px;color:var(--ink-2);white-space:nowrap;margin-top:2px}
+  .sync b{width:7px;height:7px;border-radius:50%;background:var(--ink-3)}
+  .sync.ok b{background:var(--ok)} .sync.busy b{background:var(--coral);animation:pulse 1s infinite}
+  .sync.err b{background:var(--coral)}
+  @keyframes pulse{50%{opacity:.3}}
+
+  .focus{display:flex;gap:10px;align-items:center;padding:14px 16px;margin-bottom:14px}
+  .focus .dot{width:10px;height:10px;background:var(--coral);flex:none;border-radius:2px}
+  .focus p{margin:0;font-weight:600;font-size:16px}
+
+  section{margin-bottom:14px}
+  .card{padding:18px 18px 16px}
+  .label{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+  .label span{font-weight:500;letter-spacing:0;text-transform:none}
+
+  /* Nächster Termin */
+  .next .time{font-size:34px;font-weight:700;letter-spacing:-.02em;color:var(--coral);line-height:1}
+  .next .ev{font-size:18px;font-weight:600;margin-top:8px}
+  .next .sub{color:var(--ink-2);font-size:14px;margin-top:2px}
+  .next .until{display:inline-block;margin-top:10px;font-size:13px;color:var(--ink-2);padding:4px 10px;border-radius:999px;background:var(--coral-soft)}
+  .tl{list-style:none;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--edge-low)}
+  .tl li{display:flex;gap:14px;padding:6px 0;font-size:15px}
+  .tl li.past{opacity:.45}
+  .tl .t{width:44px;flex:none;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600}
+  .tl small{display:block;color:var(--ink-3);font-size:13px}
+  .empty{color:var(--ink-2);font-size:15px;margin:0}
+  .hint{color:var(--ink-3);font-size:13px;margin:6px 0 0}
+
+  .quote{font-size:16px;margin:0;color:var(--ink)}
+  .quote.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .more{background:none;border:0;color:var(--coral);font:inherit;font-size:14px;font-weight:600;padding:8px 0 0;cursor:pointer}
+
+  /* Karten */
+  .tasks{display:flex;flex-direction:column;gap:8px}
+  .task{background:var(--glass-strong);border:1px solid var(--edge);border-radius:18px;padding:13px 14px;transition:transform .25s ease, opacity .25s ease}
+  .task.gone{transform:translateX(30px);opacity:0}
+  .task-head{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+  .task-head .pr{width:4px;align-self:stretch;border-radius:4px;background:var(--coral);flex:none;opacity:.9}
+  .task-head .pr.md{background:var(--ink-3);opacity:.5}
+  .task-title{font-weight:600;font-size:15.5px;flex:1}
+  .task-desc{display:none;color:var(--ink-2);font-size:14px;margin:8px 0 0 16px}
+  .task.open .task-desc{display:block}
+  .task-act{display:none;margin:12px 0 0 16px}
+  .task.open .task-act{display:flex;gap:8px}
+  .btn{border:1px solid var(--edge);background:var(--glass-strong);color:var(--ink);font:inherit;font-size:14px;font-weight:600;
+    padding:9px 14px;border-radius:999px;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .btn.primary{background:var(--coral);border-color:transparent;color:#fff}
+
+  details.card summary{list-style:none;cursor:pointer}
+  details.card summary::-webkit-details-marker{display:none}
+  details.card summary .label{margin:0}
+  details.card[open] summary .label{margin-bottom:10px}
+  .chev{transition:transform .2s} details[open] .chev{transform:rotate(90deg)}
+
+  /* schwebende Leiste unten */
+  .dock{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 14px);
+    display:flex;gap:6px;padding:6px;border-radius:999px}
+  .dock a,.dock button{display:flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:600;
+    padding:10px 16px;border-radius:999px;text-decoration:none;cursor:pointer;white-space:nowrap}
+  .dock .on{background:var(--glass-strong)}
+  .dock svg{width:17px;height:17px}
+
+  /* Verbinden */
+  .sheet-bg{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.25);display:none;align-items:flex-end}
+  .sheet-bg.show{display:flex}
+  .sheet{width:100%;max-width:520px;margin:0 auto;padding:22px 18px calc(env(safe-area-inset-bottom) + 18px);border-radius:28px 28px 0 0}
+  .sheet h2{margin:0 0 6px;font-size:20px}
+  .sheet p{margin:0 0 14px;color:var(--ink-2);font-size:14px}
+  .sheet input{width:100%;font:inherit;font-size:16px;padding:12px 14px;border-radius:14px;border:1px solid var(--edge);background:var(--glass-strong);color:var(--ink);margin-bottom:12px}
+  .sheet .row{display:flex;gap:8px;justify-content:flex-end}
+  .banner{padding:16px 18px;margin-bottom:14px;display:none}
+  .banner p{margin:0 0 10px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="scene" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<main>
+  <header>
+    <div>
+      <div class="date" id="date"></div>
+      <h1 id="hello">Unterwegs</h1>
+    </div>
+    <div class="sync glass" id="sync"><b></b><span id="syncTxt">…</span></div>
+  </header>
+
+  <div class="glass banner" id="banner">
+    <p>Noch nicht verbunden. Einmal den Zugangsschlüssel eintragen, danach lädt die Seite von selbst.</p>
+    <button class="btn primary" onclick="openConnect()">Verbinden</button>
+  </div>
+
+  <div class="glass focus" id="focusBox" hidden><span class="dot"></span><p id="focus"></p></div>
+
+  <section class="glass card next" id="nextBox"></section>
+
+  <section class="glass card" id="todoBox" hidden>
+    <div class="label">Heute vorgenommen <span>aus deiner Reflexion</span></div>
+    <p class="quote clamp" id="todo"></p>
+    <button class="more" id="todoMore" hidden>Ganz lesen</button>
+  </section>
+
+  <section class="glass card" id="whyBox" hidden>
+    <div class="label">Warum diese Reihenfolge</div>
+    <p class="quote" id="why"></p>
+  </section>
+
+  <section class="glass card">
+    <div class="label">Jetzt <span id="nowCount"></span></div>
+    <div class="tasks" id="now"></div>
+    <button class="more" id="nowMore" hidden></button>
+  </section>
+
+  <details class="glass card" id="weekBox">
+    <summary><div class="label">Diese Woche <span><span id="weekCount"></span> <span class="chev">›</span></span></div></summary>
+    <div class="tasks" id="week"></div>
+  </details>
+</main>
+
+<nav class="dock glass" aria-label="Navigation">
+  <button class="on" onclick="loadRemote(true)" aria-label="Neu laden">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>Aktualisieren</button>
+  <a href="index.html">Volles Board</a>
+  <button onclick="openConnect()" aria-label="Verbindung">⚙︎</button>
+</nav>
+
+<div class="sheet-bg" id="connectBg" onclick="if(event.target===this)closeConnect()">
+  <div class="sheet glass">
+    <h2>Verbindung</h2>
+    <p>Derselbe Zugangsschlüssel wie im vollen Board. Er bleibt nur auf diesem Gerät.</p>
+    <input id="tokenIn" type="password" placeholder="github_pat_..." autocomplete="off">
+    <div class="row">
+      <button class="btn" onclick="disconnect()">Trennen</button>
+      <button class="btn primary" onclick="saveToken()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GH = { owner:"viktor-lab-026", repo:"viktor-board-data", path:"board.json", branch:"main" };
+  const TOKEN_KEY = "vl-gh-token";          // gleicher Schlüssel wie im vollen Board
+  const CACHE_KEY = "vl-mobil-cache";
+  const NOW_SHOW = 3;
+  const API = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${encodeURIComponent(GH.path)}`;
+
+  const $ = id => document.getElementById(id);
+  const ls = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
+  const getToken = () => ls.get(TOKEN_KEY) || "";
+  const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const md = s => esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  function b64encode(str){ return btoa(String.fromCharCode(...new TextEncoder().encode(str))); }
+  function b64decode(b64){ const bin=atob(b64.replace(/\s/g,"")); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
+  function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+  let state = null, remoteSha = null, lastETag = null, showAllNow = false, busy = false;
+  try{ state = JSON.parse(ls.get(CACHE_KEY)); }catch(e){}
+
+  function setSync(cls, txt){ $("sync").className="sync glass "+cls; $("syncTxt").textContent=txt; }
+
+  // ---------- Darstellung ----------
+  function render(){
+    const now = new Date();
+    $("date").textContent = now.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+    const h = now.getHours();
+    $("hello").textContent = h<11 ? "Guten Morgen" : h<18 ? "Unterwegs" : "Guten Abend";
+    if(!state) { renderNext([]); return; }
+
+    const focus = state.meta && state.meta.focus;
+    $("focusBox").hidden = !focus; $("focus").textContent = focus || "";
+
+    const today = todayISO();
+    const tl = (state.timeline||[]).filter(t => !t.date || t.date === today)
+      .slice().sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+    renderNext(tl);
+
+    const refl = (state.reflections||[]).find(r => r.date === today);
+    const todo = refl && refl.self && refl.self.todos;
+    $("todoBox").hidden = !todo;
+    if(todo){ $("todo").textContent = todo; $("todo").classList.add("clamp");
+      requestAnimationFrame(()=>{ $("todoMore").hidden = $("todo").scrollHeight <= $("todo").clientHeight+2; }); }
+
+    $("whyBox").hidden = !state.why; $("why").innerHTML = md(state.why||"");
+
+    const col = id => ((state.columns||[]).find(c=>c.id===id)||{cards:[]}).cards;
+    const nowCards = col("now");
+    $("nowCount").textContent = nowCards.length ? nowCards.length+" Karten" : "";
+    const shown = showAllNow ? nowCards : nowCards.slice(0,NOW_SHOW);
+    $("now").innerHTML = shown.length ? shown.map(taskHTML).join("") : '<p class="empty">Nichts offen. Schön.</p>';
+    $("nowMore").hidden = nowCards.length <= NOW_SHOW;
+    $("nowMore").textContent = showAllNow ? "Weniger zeigen" : "Alle "+nowCards.length+" zeigen";
+
+    const weekCards = col("week").slice().sort((a,b)=>(a.prio==="hi"?0:1)-(b.prio==="hi"?0:1));
+    $("weekCount").textContent = weekCards.length;
+    $("week").innerHTML = weekCards.map(taskHTML).join("") || '<p class="empty">Leer.</p>';
+  }
+
+  function renderNext(tl){
+    const box = $("nextBox");
+    const nowHM = new Date().toTimeString().slice(0,5);
+    if(!tl.length){
+      box.innerHTML = '<div class="label">Termine heute</div><p class="empty">Heute stehen keine Termine im Board.</p>'+
+        '<p class="hint">Termine kommen über den Feierabend-Sync. Im Zweifel kurz in den Kalender schauen.</p>';
+      return;
+    }
+    const next = tl.find(t => (t.time||"") >= nowHM);
+    let head = "";
+    if(next){
+      const [hh,mm] = (next.time||"0:0").split(":").map(Number);
+      const diff = Math.round(((hh*60+mm) - (new Date().getHours()*60+new Date().getMinutes())));
+      const until = diff<=0 ? "jetzt" : diff<60 ? "in "+diff+" Min" : "in "+Math.floor(diff/60)+" Std "+(diff%60? (diff%60)+" Min":"");
+      head = `<div class="label">Als Nächstes</div><div class="time">${esc(next.time)}</div>
+        <div class="ev">${esc(next.ev)}</div>${next.sub?`<div class="sub">${esc(next.sub)}</div>`:""}
+        <span class="until">${until}</span>`;
+    } else {
+      head = '<div class="label">Termine heute</div><p class="empty">Für heute ist alles gelaufen.</p>';
+    }
+    const list = tl.length>1 || !next ? `<ul class="tl">${tl.map(t=>`<li class="${(t.time||"")<nowHM && t!==next?"past":""}">
+        <span class="t">${esc(t.time)}</span><span>${esc(t.ev)}${t.sub?`<small>${esc(t.sub)}</small>`:""}</span></li>`).join("")}</ul>` : "";
+    box.innerHTML = head + list;
+  }
+
+  function taskHTML(c){
+    return `<div class="task" data-id="${esc(c.id)}">
+      <div class="task-head"><span class="pr ${c.prio==="hi"?"":"md"}"></span><span class="task-title">${esc(c.title)}</span></div>
+      ${c.desc?`<div class="task-desc">${md(c.desc)}</div>`:""}
+      <div class="task-act"><button class="btn primary" data-done="${esc(c.id)}">Erledigt</button></div>
+    </div>`;
+  }
+
+  document.addEventListener("click", e=>{
+    const done = e.target.closest("[data-done]");
+    if(done){ markDone(done.dataset.done, done.closest(".task")); return; }
+    const head = e.target.closest(".task-head");
+    if(head) head.parentElement.classList.toggle("open");
+  });
+  $("nowMore").addEventListener("click",()=>{ showAllNow=!showAllNow; render(); });
+  $("todoMore").addEventListener("click",()=>{ $("todo").classList.remove("clamp"); $("todoMore").hidden=true; });
+
+  // ---------- Laden ----------
+  async function loadRemote(manual){
+    if(window.__BOARD__){ state = window.__BOARD__; setSync("ok","Vorschau"); render(); return; }
+    const token = getToken();
+    if(!token){ $("banner").style.display="block"; setSync("","Nicht verbunden"); render(); return; }
+    $("banner").style.display="none";
+    setSync("busy","Lädt");
+    try{
+      const headers = {Authorization:`Bearer ${token}`, Accept:"application/vnd.github+json"};
+      if(lastETag && !manual) headers["If-None-Match"] = lastETag;
+      const r = await fetch(`${API}?ref=${GH.branch}${manual?"&t="+Date.now():""}`, {headers, cache:"no-store"});
+      if(r.status===304){ setSync("ok", standText()); return; }
+      if(r.status===401){ setSync("err","Schlüssel ungültig"); return; }
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      lastETag = r.headers.get("etag");
+      const j = await r.json(); remoteSha = j.sha;
+      state = JSON.parse(b64decode(j.content));
+      ls.set(CACHE_KEY, JSON.stringify(state));
+      render(); setSync("ok", standText());
+    }catch(e){ setSync("err", state ? "Offline, letzter Stand" : "Ladefehler"); console.error(e); render(); }
+  }
+  function standText(){
+    const u = state && state.meta && state.meta.updated; if(!u) return "Verbunden";
+    const d = new Date(u), m = Math.round((Date.now()-d)/60000);
+    if(m<2) return "gerade aktuell";
+    if(m<60) return "vor "+m+" Min";
+    if(m<24*60) return "Stand "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+    return "Stand "+d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
+  }
+
+  // ---------- Erledigt: frischen Stand holen, nur diese Karte verschieben, zurückschreiben ----------
+  async function markDone(id, el){
+    if(busy) return; busy = true;
+    if(el) el.classList.add("gone");
+    if(window.__BOARD__){ setTimeout(()=>{ moveCard(state,id); render(); busy=false; },250); return; }
+    const token = getToken(); if(!token){ busy=false; return; }
+    setSync("busy","Speichert");
+    try{
+      for(let attempt=0; attempt<3; attempt++){
+        const headers = {Authorization:`Bearer ${token}`, Accept:"application/vnd.github+json"};
+        const r = await fetch(`${API}?ref=${GH.branch}&t=${Date.now()}`, {headers, cache:"no-store"});
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        const j = await r.json();
+        const fresh = JSON.parse(b64decode(j.content));
+        if(!moveCard(fresh,id)){ state = fresh; break; }   // schon woanders erledigt
+        fresh.meta = fresh.meta || {}; fresh.meta.updated = new Date().toISOString();
+        const put = await fetch(API, {method:"PUT", headers,
+          body: JSON.stringify({message:"Erledigt vom Handy "+new Date().toLocaleString("de-DE"),
+            content:b64encode(JSON.stringify(fresh,null,2)), sha:j.sha, branch:GH.branch})});
+        if(put.status===409) continue;                       // jemand war schneller: neu holen, nochmal
+        if(!put.ok) throw new Error("HTTP "+put.status);
+        const pj = await put.json(); remoteSha = pj.content.sha; lastETag = null;
+        state = fresh; break;
+      }
+      ls.set(CACHE_KEY, JSON.stringify(state));
+      setSync("ok","Gespeichert");
+    }catch(e){ console.error(e); setSync("err","Nicht gespeichert"); if(el) el.classList.remove("gone"); }
+    busy = false; setTimeout(render, 250);
+  }
+  function moveCard(st, id){
+    const cols = st.columns||[]; let card=null;
+    for(const c of cols){ const i=(c.cards||[]).findIndex(k=>k.id===id); if(i>-1 && c.id!=="done"){ card=c.cards.splice(i,1)[0]; break; } }
+    if(!card) return false;
+    let done = cols.find(c=>c.id==="done"); if(!done){ done={id:"done",title:"Erledigt",cards:[]}; cols.push(done); }
+    card.doneAt = todayISO(); done.cards.unshift(card); return true;
+  }
+
+  // ---------- Verbinden ----------
+  function openConnect(){ $("tokenIn").value = getToken(); $("connectBg").classList.add("show"); }
+  function closeConnect(){ $("connectBg").classList.remove("show"); }
+  function saveToken(){ const t=$("tokenIn").value.trim(); if(!t) return; ls.set(TOKEN_KEY,t); closeConnect(); loadRemote(true); }
+  function disconnect(){ ls.del(TOKEN_KEY); closeConnect(); loadRemote(); }
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeConnect(); });
+
+  document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) loadRemote(); });
+  setInterval(()=>{ if(!document.hidden && !busy) loadRemote(); }, 120000);
+  setInterval(()=>{ if(state) render(); }, 60000);   // „Als Nächstes“ läuft mit der Uhr mit
+  render(); loadRemote();
+</script>
+</body>
+</html>
